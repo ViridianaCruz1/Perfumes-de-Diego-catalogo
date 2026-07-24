@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useCart } from "../context/CartContext";
+import { useParfums } from "../context/ParfumsContext";
 import ShoppingCartProduct from "../ui/ShoppingCartProduct";
 import EnvioGratisProgress from "../ui/EnvioGratisProgress";
 import Checkout from "../ui/Checkout";
@@ -52,12 +53,14 @@ export default function CheckoutPage() {
   }, [cartItems.length, navigate]);
 
   // ¿Los decants ya califican a envío gratis? (fuente única)
+  const { bazarActivo } = useParfums();
   const { califica: decantsCalifican } = getEstadoEnvioGratis({
     cartItems,
     isDiscountApplied,
     discountType,
     discountValue,
     discountTarget,
+    bazarActivo,
   });
 
   const handleApplyCode = async () => {
@@ -174,32 +177,34 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Código de descuento */}
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Código de descuento
-            </label>
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                value={inputCode}
-                onChange={handleInputChange}
-                placeholder="Código de descuento"
-                autoCapitalize="characters"
-                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A47E3B] focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={handleApplyCode}
-                disabled={applying}
-                className="bg-[#A47E3B] text-white px-4 py-2 rounded-md text-sm hover:bg-[#8b6d32] disabled:opacity-50 whitespace-nowrap"
-              >
-                {applying ? "Validando..." : "Aplicar"}
-              </button>
+          {/* Código de descuento (oculto durante el modo bazar) */}
+          {!bazarActivo && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Código de descuento
+              </label>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  value={inputCode}
+                  onChange={handleInputChange}
+                  placeholder="Código de descuento"
+                  autoCapitalize="characters"
+                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A47E3B] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCode}
+                  disabled={applying}
+                  className="bg-[#A47E3B] text-white px-4 py-2 rounded-md text-sm hover:bg-[#8b6d32] disabled:opacity-50 whitespace-nowrap"
+                >
+                  {applying ? "Validando..." : "Aplicar"}
+                </button>
+              </div>
+              {errorMessage && (
+                <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+              )}
             </div>
-            {errorMessage && (
-              <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
-            )}
-          </div>
+          )}
 
           {/* Totales */}
           <div className="border-t pt-4">

@@ -37,7 +37,21 @@ export function getEstadoEnvioGratis({
   discountType = null,
   discountValue = 0,
   discountTarget = "ALL",
+  bazarActivo = false,
 } = {}) {
+  // Durante el modo bazar no hay envío gratis (se entrega en mano).
+  if (bazarActivo) {
+    return {
+      total: 0,
+      califica: false,
+      falta: UMBRAL_ENVIO_GRATIS,
+      porcentaje: 0,
+      hayEspeciales: false,
+      hayElegibles: false,
+      bazar: true,
+    };
+  }
+
   const decants = cartItems.filter((i) => i.tipoVenta === "decant");
   const elegibles = decants.filter((i) => !esDecantConPrecioEspecial30ml(i));
   const hayEspeciales = decants.some(esDecantConPrecioEspecial30ml);

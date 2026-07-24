@@ -1,4 +1,5 @@
 import { useCart } from "../context/CartContext";
+import { useParfums } from "../context/ParfumsContext";
 import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag } from "lucide-react";
 import ShoppingCartProduct from "./ShoppingCartProduct";
@@ -23,6 +24,7 @@ export default function ShoppingCart() {
   } = useCart();
 
   const navigate = useNavigate();
+  const { bazarActivo } = useParfums();
 
   // ¿Los decants del carrito ya califican a envío gratis? (fuente única)
   const { califica: decantsCalifican } = getEstadoEnvioGratis({
@@ -31,6 +33,7 @@ export default function ShoppingCart() {
     discountType,
     discountValue,
     discountTarget,
+    bazarActivo,
   });
 
   // Bloquear scroll del body al abrir el carrito, preservando la posición.

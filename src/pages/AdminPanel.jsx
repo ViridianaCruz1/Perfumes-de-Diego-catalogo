@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getCountAvisosNuevos } from "../functions/getAvisosStock";
+import ModoBazarControl from "../ui/ModoBazarControl";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -57,6 +58,11 @@ export default function AdminPanel() {
           <p className="text-gray-600">
             Desde aquí podrás administrar tu catálogo de perfumes.
           </p>
+        </div>
+
+        {/* Modo Bazar */}
+        <div className="mb-6">
+          <ModoBazarControl />
         </div>
 
         {/* Sección Avisos de stock */}
