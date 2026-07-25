@@ -60,11 +60,6 @@ export default function AdminPanel() {
           </p>
         </div>
 
-        {/* Modo Bazar */}
-        <div className="mb-6">
-          <ModoBazarControl />
-        </div>
-
         {/* Sección Avisos de stock */}
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
@@ -241,6 +236,11 @@ export default function AdminPanel() {
               </p>
             </button>
           </div>
+        </div>
+
+        {/* Modo Bazar — hasta el fondo del panel */}
+        <div className="mt-8">
+          <ModoBazarControl />
         </div>
 
       </main>
