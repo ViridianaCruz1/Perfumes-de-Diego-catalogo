@@ -38,7 +38,7 @@ function ProductCard({ parfum }) {
 
       {parfum.image && !imgError ? (
         <img
-          src={usarOriginal ? parfum.image : imagenThumb(parfum.image, 440)}
+          src={usarOriginal ? parfum.image : imagenThumb(parfum.image, 640)}
           alt={parfum.nombre}
           loading="lazy"
           onError={() =>
