@@ -23,28 +23,28 @@ export default function ImageUploader({
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const generateFileName = (originalName) => {
+  const generateFileName = (originalName, ext = "jpg") => {
     const cleaned = originalName
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9.]+/g, "-")
       .replace(/-+/g, "-");
-    const ext = cleaned.split(".").pop();
-    const base = cleaned.replace(`.${ext}`, "");
+    const base = cleaned.replace(/\.[^.]+$/, ""); // quita cualquier extensión
     const timestamp = Date.now();
     return `${base}-${timestamp}.${ext}`;
   };
 
   const compressImage = async (file) => {
-    // Si ya pesa menos de 200KB, no la toques
-    if (file.size < 200 * 1024) return file;
-
+    // Convertimos SIEMPRE a JPEG: un PNG fotográfico no se puede comprimir sin
+    // perder resolución, y ahí venía el borroso. En JPEG, la misma foto pesa
+    // ~170KB a plena resolución y se ve nítida.
     const options = {
-      maxSizeMB: 0.25, // objetivo: ~250KB
-      maxWidthOrHeight: 1000, // máximo 1000px del lado más largo
+      maxSizeMB: 0.5, // margen de sobra; una foto normal queda en ~150-250KB
+      maxWidthOrHeight: 1600, // no encoge fotos de hasta 1600px
       useWebWorker: true,
-      initialQuality: 0.8,
+      initialQuality: 0.85,
+      fileType: "image/jpeg",
     };
 
     try {
@@ -80,16 +80,20 @@ export default function ImageUploader({
     setUploading(true);
 
     try {
-      // Comprimir antes de subir
+      // Comprimir/convertir a JPEG antes de subir
       const compressedFile = await compressImage(file);
 
-      const fileName = generateFileName(file.name);
+      // El nombre y el content-type deben coincidir con el formato real de salida.
+      const tipo = compressedFile.type || "image/jpeg";
+      const ext = tipo === "image/png" ? "png" : "jpg";
+      const fileName = generateFileName(file.name, ext);
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(fileName, compressedFile, {
           cacheControl: "2592000",
           upsert: false,
+          contentType: tipo,
         });
 
       if (uploadError) {
