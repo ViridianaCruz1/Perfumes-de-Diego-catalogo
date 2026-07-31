@@ -1,4 +1,5 @@
 import CustomSelect from "./CustomSelect";
+import { useParfums } from "../context/ParfumsContext";
 import {
   getOpcionesMililitros,
   getPlaceholderMililitros,
@@ -12,7 +13,11 @@ export default function SelectMililitros({
   variant = "default",
   pulse = false,
 }) {
-  const opciones = getOpcionesMililitros(parfum);
+  const { bazarActivo, minDecantBazar } = useParfums();
+  const opciones = getOpcionesMililitros(parfum, {
+    bazarActivo,
+    minDecant: minDecantBazar,
+  });
   const placeholder = getPlaceholderMililitros(parfum);
   const esCta = variant === "cta";
 

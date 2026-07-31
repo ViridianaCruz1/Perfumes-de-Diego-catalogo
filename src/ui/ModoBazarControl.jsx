@@ -4,6 +4,7 @@ import supabase from "../services/supabase";
 export default function ModoBazarControl() {
   const [activo, setActivo] = useState(false);
   const [recargo, setRecargo] = useState(0);
+  const [minDecant, setMinDecant] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState("");
@@ -12,18 +13,19 @@ export default function ModoBazarControl() {
     (async () => {
       const { data } = await supabase
         .from("config_bazar")
-        .select("activo, recargo")
+        .select("activo, recargo, min_decant")
         .eq("id", 1)
         .single();
       if (data) {
         setActivo(!!data.activo);
         setRecargo(Number(data.recargo) || 0);
+        setMinDecant(Number(data.min_decant) || 0);
       }
       setCargando(false);
     })();
   }, []);
 
-  const guardar = async (nuevoActivo, nuevoRecargo) => {
+  const guardar = async (nuevoActivo, nuevoRecargo, nuevoMin) => {
     setGuardando(true);
     setMsg("");
     const { error } = await supabase
@@ -31,6 +33,7 @@ export default function ModoBazarControl() {
       .update({
         activo: nuevoActivo,
         recargo: Number(nuevoRecargo) || 0,
+        min_decant: Number(nuevoMin) || 0,
         actualizado_en: new Date().toISOString(),
       })
       .eq("id", 1);
@@ -46,7 +49,7 @@ export default function ModoBazarControl() {
   const toggle = () => {
     const nuevo = !activo;
     setActivo(nuevo);
-    guardar(nuevo, recargo);
+    guardar(nuevo, recargo, minDecant);
   };
 
   if (cargando) {
@@ -90,7 +93,25 @@ export default function ModoBazarControl() {
         step="1"
         value={recargo}
         onChange={(e) => setRecargo(e.target.value)}
-        onBlur={() => guardar(activo, recargo)}
+        onBlur={() => guardar(activo, recargo, minDecant)}
+        className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A47E3B] focus:outline-none"
+      />
+
+      <label className="text-sm font-medium text-gray-700 block mt-4">
+        Mínimo por decant ($)
+      </label>
+      <p className="text-xs text-gray-500 mt-0.5 mb-1">
+        Cada decant debe llegar a este monto. El sistema oculta las cantidades
+        de ml que queden por debajo, según el precio de cada perfume. Pon 0 para
+        no exigir mínimo.
+      </p>
+      <input
+        type="number"
+        min="0"
+        step="10"
+        value={minDecant}
+        onChange={(e) => setMinDecant(e.target.value)}
+        onBlur={() => guardar(activo, recargo, minDecant)}
         className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#A47E3B] focus:outline-none"
       />
 

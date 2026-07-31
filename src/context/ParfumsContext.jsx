@@ -8,6 +8,7 @@ export function ParfumsProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bazarActivo, setBazarActivo] = useState(false);
+  const [minDecantBazar, setMinDecantBazar] = useState(0);
 
   const fetchParfums = useCallback(async () => {
     try {
@@ -15,7 +16,10 @@ export function ParfumsProvider({ children }) {
       const data = await getParfums();
 
       // ¿Modo bazar activo? (para ocultar cupones/envío gratis en la UI)
-      getConfigBazar().then((c) => setBazarActivo(!!c?.activo));
+      getConfigBazar().then((c) => {
+        setBazarActivo(!!c?.activo);
+        setMinDecantBazar(Number(c?.min_decant) || 0);
+      });
 
       // Normalizar datos desde origen (mismo patrón que ProductGrid usaba)
       const cleanData = data.map((p) => ({
@@ -48,6 +52,7 @@ export function ParfumsProvider({ children }) {
         loading,
         error,
         bazarActivo,
+        minDecantBazar,
         refresh: fetchParfums, // por si quieres recargar manualmente
       }}
     >
