@@ -25,6 +25,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const AdminPedidoRapido = lazy(() => import("./pages/AdminPedidoRapido"));
 const AdminPerfumesList = lazy(() => import("./pages/AdminPerfumesList"));
 const AdminPerfumeEdit = lazy(() => import("./pages/AdminPerfumeEdit"));
 const AdminPerfumeCreate = lazy(() => import("./pages/AdminPerfumeCreate"));
@@ -79,6 +80,17 @@ const router = createBrowserRouter([
     element: (
       <ProtectedAdminRoute>
         <AdminPanel />
+      </ProtectedAdminRoute>
+    ),
+    errorElement: <RouterErrorElement />,
+  },
+
+  // Pedido rápido (mostrador de bazar)
+  {
+    path: "/admin/pedido-rapido",
+    element: (
+      <ProtectedAdminRoute>
+        <AdminPedidoRapido />
       </ProtectedAdminRoute>
     ),
     errorElement: <RouterErrorElement />,

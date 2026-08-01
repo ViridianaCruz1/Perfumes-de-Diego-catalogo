@@ -58,6 +58,12 @@ export default function AdminPanel() {
           <p className="text-gray-600">
             Desde aquí podrás administrar tu catálogo de perfumes.
           </p>
+          <a
+            href="/admin/pedido-rapido"
+            className="inline-block mt-4 bg-[#A47E3B] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#8b6d32]"
+          >
+            🧾 Pedido rápido (bazar)
+          </a>
         </div>
 
         {/* Sección Avisos de stock */}
