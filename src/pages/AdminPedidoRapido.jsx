@@ -136,11 +136,19 @@ export default function AdminPedidoRapido() {
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    if (!q) return parfums;
-    return parfums.filter(
-      (p) =>
-        p.nombre?.toLowerCase().includes(q) ||
-        p.casa?.toLowerCase().includes(q),
+    const base = !q
+      ? parfums
+      : parfums.filter(
+          (p) =>
+            p.nombre?.toLowerCase().includes(q) ||
+            p.casa?.toLowerCase().includes(q),
+        );
+
+    // Orden: casa A-Z y, dentro de cada casa, nombre A-Z (ignora may/acentos).
+    const cmp = (a, b) =>
+      (a || "").localeCompare(b || "", "es", { sensitivity: "base" });
+    return [...base].sort(
+      (a, b) => cmp(a.casa, b.casa) || cmp(a.nombre, b.nombre),
     );
   }, [parfums, busqueda]);
 
