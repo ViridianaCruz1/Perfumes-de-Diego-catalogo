@@ -26,6 +26,8 @@ function FilaPerfume({ parfum, bazarActivo, minDecant, onAgregar }) {
   const [cantidad, setCantidad] = useState(1);
 
   const minMl = opciones[0]?.value ?? null;
+  const minTotal =
+    esDecant && minMl != null ? calcularPrecioDecant(parfum, minMl) : null;
 
   const agregar = () => {
     if (esDecant) {
@@ -77,7 +79,14 @@ function FilaPerfume({ parfum, bazarActivo, minDecant, onAgregar }) {
         {esDecant ? "/ml" : " /pza"}
       </td>
       <td className="py-2 pr-2 text-sm text-gray-500 whitespace-nowrap">
-        {esDecant ? (minMl ? `${minMl} ml` : "—") : "—"}
+        {esDecant && minMl ? (
+          <span>
+            {minMl} ml
+            <span className="text-gray-400"> · ${formatPrecio(minTotal)}</span>
+          </span>
+        ) : (
+          "—"
+        )}
       </td>
       <td className="py-2">
         <div className="flex items-center gap-2">
