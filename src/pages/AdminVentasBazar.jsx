@@ -76,7 +76,7 @@ export default function AdminVentasBazar() {
       }
     }
     return Object.values(acc)
-      .sort((a, b) => b.ingreso - a.ingreso)
+      .sort((a, b) => b.veces - a.veces)
       .slice(0, 10);
   }, [filtrados]);
 
@@ -234,12 +234,11 @@ export default function AdminVentasBazar() {
                           {i + 1}. {t.nombre}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {t.casa} · {t.veces}{" "}
-                          {t.veces === 1 ? "venta" : "ventas"}
+                          {t.casa} · ${formatPrecio(t.ingreso)}
                         </p>
                       </div>
                       <span className="text-sm font-semibold whitespace-nowrap">
-                        ${formatPrecio(t.ingreso)}
+                        {t.veces} {t.veces === 1 ? "venta" : "ventas"}
                       </span>
                     </div>
                   ))}
