@@ -64,6 +64,12 @@ export default function AdminPanel() {
           >
             🧾 Pedido rápido (bazar)
           </a>
+          <a
+            href="/admin/ventas-bazar"
+            className="inline-block mt-4 ml-3 border border-[#A47E3B] text-[#A47E3B] px-5 py-2.5 rounded-lg font-semibold hover:bg-[#faf6ef]"
+          >
+            📊 Ventas del bazar
+          </a>
         </div>
 
         {/* Sección Avisos de stock */}

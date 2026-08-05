@@ -145,13 +145,17 @@ export default function AdminPedidoRapido() {
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    const base = !q
-      ? parfums
-      : parfums.filter(
-          (p) =>
-            p.nombre?.toLowerCase().includes(q) ||
-            p.casa?.toLowerCase().includes(q),
-        );
+
+    // Solo perfumes disponibles (nada de Agotado ni Próximamente).
+    let base = parfums.filter((p) => p.disponible === "Disponible");
+
+    if (q) {
+      base = base.filter(
+        (p) =>
+          p.nombre?.toLowerCase().includes(q) ||
+          p.casa?.toLowerCase().includes(q),
+      );
+    }
 
     // Orden: casa A-Z y, dentro de cada casa, nombre A-Z (ignora may/acentos).
     const cmp = (a, b) =>
