@@ -4,7 +4,7 @@ import supabase from "../services/supabase";
 // orden + badges). Evita bajar columnas pesadas que no se muestran.
 // El detalle de producto (getParfumById) sí trae todo con "*".
 const COLS_GRID =
-  "id, nombre, casa, precio, botellasDisponibles, image, disponible, disponible_desde, categoria, stock, concentracion, notas, tiktokLink, esBestSeller";
+  "id, nombre, casa, precio, precio30ml, botellasDisponibles, image, disponible, disponible_desde, categoria, stock, concentracion, notas, tiktokLink, esBestSeller";
 
 // ============================================================
 //  MODO BAZAR — recargo global sobre los precios
