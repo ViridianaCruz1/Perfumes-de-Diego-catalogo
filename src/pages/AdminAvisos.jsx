@@ -7,6 +7,7 @@ import {
   Trash2,
   MessageCircle,
   Eye,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -33,6 +34,10 @@ export default function AdminAvisos() {
   const [avisos, setAvisos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("pendientes");
+  const [abiertos, setAbiertos] = useState({}); // qué grupos están expandidos
+
+  const toggleGrupo = (key) =>
+    setAbiertos((prev) => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     fetchAvisos();
@@ -235,8 +240,12 @@ export default function AdminAvisos() {
                 key={grupo.key}
                 className="bg-white rounded-lg shadow-sm overflow-hidden"
               >
-                {/* Encabezado del grupo (perfume) */}
-                <div className="flex items-center justify-between gap-2 px-4 py-3 border-b bg-gray-50">
+                {/* Encabezado del grupo (perfume) — clickeable para expandir */}
+                <button
+                  type="button"
+                  onClick={() => toggleGrupo(grupo.key)}
+                  className="w-full text-left flex items-center justify-between gap-2 px-4 py-3 border-b bg-gray-50 hover:bg-gray-100"
+                >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900 truncate">
@@ -258,13 +267,22 @@ export default function AdminAvisos() {
                       <p className="text-sm text-gray-500">{grupo.casa}</p>
                     )}
                   </div>
-                  <span className="text-xs font-semibold text-gray-600 bg-gray-200 rounded-full px-2.5 py-1 shrink-0">
-                    {grupo.avisos.length}{" "}
-                    {grupo.avisos.length === 1 ? "persona" : "personas"}
-                  </span>
-                </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-semibold text-gray-600 bg-gray-200 rounded-full px-2.5 py-1">
+                      {grupo.avisos.length}{" "}
+                      {grupo.avisos.length === 1 ? "persona" : "personas"}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-gray-500 transition-transform ${
+                        abiertos[grupo.key] ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
 
-                {/* Personas que esperan este perfume */}
+                {/* Personas que esperan este perfume (solo si está abierto) */}
+                {abiertos[grupo.key] && (
                 <div className="divide-y divide-gray-100">
                   {grupo.avisos.map((aviso) => {
                     const estado = getEstado(aviso);
@@ -358,6 +376,7 @@ export default function AdminAvisos() {
                     );
                   })}
                 </div>
+                )}
               </div>
             ))}
           </div>
