@@ -25,6 +25,12 @@ export default function AvisameFormulario({ parfum }) {
         parfum_id: parfum.id,
         parfum_nombre: parfum.nombre,
         parfum_casa: parfum.casa || null,
+        tipo:
+          parfum.stock === true
+            ? "botella"
+            : parfum.stock === false
+              ? "decant"
+              : null,
         whatsapp: whatsappLimpio,
       });
       setExito(true);

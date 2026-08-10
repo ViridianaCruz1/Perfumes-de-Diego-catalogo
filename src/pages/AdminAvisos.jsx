@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -50,6 +50,29 @@ export default function AdminAvisos() {
     if (filter === "notificados") return a.notificado_en !== null;
     return true;
   });
+
+  // Agrupa los avisos por perfume. Ordena por cantidad de personas (desc).
+  const grupos = useMemo(() => {
+    const map = new Map();
+    for (const a of avisosFiltrados) {
+      const key = a.parfum_id || `${a.parfum_nombre}||${a.parfum_casa || ""}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          nombre: a.parfum_nombre,
+          casa: a.parfum_casa,
+          tipo: a.tipo,
+          avisos: [],
+        });
+      }
+      map.get(key).avisos.push(a);
+    }
+    return Array.from(map.values()).sort(
+      (x, y) =>
+        y.avisos.length - x.avisos.length ||
+        (x.nombre || "").localeCompare(y.nombre || "", "es"),
+    );
+  }, [avisosFiltrados]);
 
   const handleMarcarLeido = async (id) => {
     try {
@@ -206,108 +229,137 @@ export default function AdminAvisos() {
             <p className="text-gray-500">No hay avisos en esta categoría.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {avisosFiltrados.map((aviso) => {
-              const estado = getEstado(aviso);
-              const estilo = estiloEstado[estado];
-              return (
-                <div
-                  key={aviso.id}
-                  className={`bg-white rounded-lg shadow-sm p-4 border-l-4 ${estilo.borde}`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span
-                          className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${estilo.badgeBg} ${estilo.badgeText}`}
-                        >
-                          {estilo.label}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Solicitado: {formatFecha(aviso.created_at)}
-                        </span>
-                        {aviso.leido_en && !aviso.notificado_en && (
-                          <span className="text-xs text-gray-500">
-                            · Leído: {formatFecha(aviso.leido_en)}
-                          </span>
-                        )}
-                        {aviso.notificado_en && (
-                          <span className="text-xs text-gray-500">
-                            · Notificado: {formatFecha(aviso.notificado_en)}
-                          </span>
-                        )}
-                      </div>
+          <div className="space-y-5">
+            {grupos.map((grupo) => (
+              <div
+                key={grupo.key}
+                className="bg-white rounded-lg shadow-sm overflow-hidden"
+              >
+                {/* Encabezado del grupo (perfume) */}
+                <div className="flex items-center justify-between gap-2 px-4 py-3 border-b bg-gray-50">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900 truncate">
-                        {aviso.parfum_nombre}
+                        {grupo.nombre}
                       </p>
-                      {aviso.parfum_casa && (
-                        <p className="text-sm text-gray-500">
-                          {aviso.parfum_casa}
-                        </p>
+                      {grupo.tipo && (
+                        <span
+                          className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${
+                            grupo.tipo === "botella"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {grupo.tipo === "botella" ? "Botella" : "Decant"}
+                        </span>
                       )}
-                      <div className="mt-2 text-sm text-gray-700">
-                        <p>
-                          📱 WhatsApp:{" "}
-                          <span className="font-mono">{aviso.whatsapp}</span>
-                        </p>
-                      </div>
                     </div>
-
-                    <div className="flex flex-wrap gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenWhatsApp(aviso)}
-                        className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md"
-                      >
-                        <MessageCircle size={14} />
-                        WhatsApp
-                      </button>
-
-                      {estado === "nuevo" && (
-                        <button
-                          type="button"
-                          onClick={() => handleMarcarLeido(aviso.id)}
-                          className="flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md"
-                        >
-                          <Eye size={14} />
-                          Marcar leído
-                        </button>
-                      )}
-
-                      {(estado === "nuevo" || estado === "leido") && (
-                        <button
-                          type="button"
-                          onClick={() => handleMarcarNotificado(aviso.id)}
-                          className="flex items-center gap-1 bg-[#A47E3B] hover:bg-[#D4AF7A] text-white text-xs font-semibold px-3 py-1.5 rounded-md"
-                        >
-                          <CheckCircle size={14} />
-                          Marcar notificado
-                        </button>
-                      )}
-
-                      {estado === "notificado" && (
-                        <button
-                          type="button"
-                          onClick={() => handleDesmarcarNotificado(aviso.id)}
-                          className="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-md"
-                        >
-                          Pasar a pendiente
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(aviso.id)}
-                        className="flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium px-3 py-1.5 rounded-md border border-red-200"
-                      >
-                        <Trash2 size={14} />
-                        Borrar
-                      </button>
-                    </div>
+                    {grupo.casa && (
+                      <p className="text-sm text-gray-500">{grupo.casa}</p>
+                    )}
                   </div>
+                  <span className="text-xs font-semibold text-gray-600 bg-gray-200 rounded-full px-2.5 py-1 shrink-0">
+                    {grupo.avisos.length}{" "}
+                    {grupo.avisos.length === 1 ? "persona" : "personas"}
+                  </span>
                 </div>
-              );
-            })}
+
+                {/* Personas que esperan este perfume */}
+                <div className="divide-y divide-gray-100">
+                  {grupo.avisos.map((aviso) => {
+                    const estado = getEstado(aviso);
+                    const estilo = estiloEstado[estado];
+                    return (
+                      <div
+                        key={aviso.id}
+                        className={`p-3 border-l-4 ${estilo.borde}`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <span
+                                className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${estilo.badgeBg} ${estilo.badgeText}`}
+                              >
+                                {estilo.label}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                Solicitado: {formatFecha(aviso.created_at)}
+                              </span>
+                              {aviso.leido_en && !aviso.notificado_en && (
+                                <span className="text-xs text-gray-500">
+                                  · Leído: {formatFecha(aviso.leido_en)}
+                                </span>
+                              )}
+                              {aviso.notificado_en && (
+                                <span className="text-xs text-gray-500">
+                                  · Notificado: {formatFecha(aviso.notificado_en)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              📱 WhatsApp:{" "}
+                              <span className="font-mono">{aviso.whatsapp}</span>
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenWhatsApp(aviso)}
+                              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md"
+                            >
+                              <MessageCircle size={14} />
+                              WhatsApp
+                            </button>
+
+                            {estado === "nuevo" && (
+                              <button
+                                type="button"
+                                onClick={() => handleMarcarLeido(aviso.id)}
+                                className="flex items-center gap-1 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-3 py-1.5 rounded-md"
+                              >
+                                <Eye size={14} />
+                                Marcar leído
+                              </button>
+                            )}
+
+                            {(estado === "nuevo" || estado === "leido") && (
+                              <button
+                                type="button"
+                                onClick={() => handleMarcarNotificado(aviso.id)}
+                                className="flex items-center gap-1 bg-[#A47E3B] hover:bg-[#D4AF7A] text-white text-xs font-semibold px-3 py-1.5 rounded-md"
+                              >
+                                <CheckCircle size={14} />
+                                Marcar notificado
+                              </button>
+                            )}
+
+                            {estado === "notificado" && (
+                              <button
+                                type="button"
+                                onClick={() => handleDesmarcarNotificado(aviso.id)}
+                                className="flex items-center gap-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium px-3 py-1.5 rounded-md"
+                              >
+                                Pasar a pendiente
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(aviso.id)}
+                              className="flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-medium px-3 py-1.5 rounded-md border border-red-200"
+                            >
+                              <Trash2 size={14} />
+                              Borrar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </main>
