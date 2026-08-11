@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, Search } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Trash2, Search } from "lucide-react";
 import supabase from "../services/supabase";
 import getParfums, { getConfigBazar } from "../functions/getParfums";
 import {
@@ -32,15 +32,15 @@ function FilaPerfume({ parfum, bazarActivo, minDecant, onAgregar }) {
   const agregar = () => {
     if (esDecant) {
       if (!ml) return;
-      const subtotal = calcularPrecioDecant(parfum, Number(ml));
       onAgregar({
         parfumId: parfum.id,
         nombre: parfum.nombre,
         casa: parfum.casa,
         foto: parfum.image,
         tipo: "decant",
-        detalle: `${ml} ml`,
-        subtotal,
+        ml: Number(ml),
+        minMl: minMl || 1,
+        subtotal: calcularPrecioDecant(parfum, Number(ml)),
       });
     } else if (esBotella) {
       if (stockBotellas < 1) return;
@@ -51,7 +51,7 @@ function FilaPerfume({ parfum, bazarActivo, minDecant, onAgregar }) {
         casa: parfum.casa,
         foto: parfum.image,
         tipo: "botella",
-        detalle: `${q} pza${q > 1 ? "s" : ""}`,
+        cantidad: q,
         subtotal: Number(parfum.precio) * q,
       });
     }
@@ -177,6 +177,47 @@ export default function AdminPedidoRapido() {
 
   const quitar = (key) => setLineas((prev) => prev.filter((l) => l.key !== key));
 
+  const parfumPorId = (id) => parfums.find((p) => p.id === id);
+
+  // Ajusta los ml de un decant ya agregado (±1, o ±0.5 en Ensar Oud).
+  const cambiarMl = (key, dir) => {
+    setLineas((prev) =>
+      prev.map((l) => {
+        if (l.key !== key || l.tipo !== "decant") return l;
+        const parfum = parfumPorId(l.parfumId);
+        if (!parfum) return l;
+        const paso = parfum.casa === "Ensar Oud" ? 0.5 : 1;
+        const min = l.minMl || paso;
+        const max = 30;
+        let nuevo = Math.round((Number(l.ml) + dir * paso) * 10) / 10;
+        nuevo = Math.max(min, Math.min(max, nuevo));
+        return { ...l, ml: nuevo, subtotal: calcularPrecioDecant(parfum, nuevo) };
+      }),
+    );
+  };
+
+  // Ajusta la cantidad de piezas de una botella ya agregada (±1, tope por stock).
+  const cambiarCantidad = (key, dir) => {
+    setLineas((prev) =>
+      prev.map((l) => {
+        if (l.key !== key || l.tipo !== "botella") return l;
+        const parfum = parfumPorId(l.parfumId);
+        if (!parfum) return l;
+        const stock = Math.max(
+          1,
+          Math.floor(Number(parfum.botellasDisponibles) || 1),
+        );
+        let nueva = Math.max(1, Math.min(stock, (Number(l.cantidad) || 1) + dir));
+        return { ...l, cantidad: nueva, subtotal: Number(parfum.precio) * nueva };
+      }),
+    );
+  };
+
+  const detalleLinea = (l) =>
+    l.tipo === "decant"
+      ? `${l.ml} ml`
+      : `${l.cantidad} pza${l.cantidad > 1 ? "s" : ""}`;
+
   const nuevoPedido = () => {
     setLineas([]);
     setMsg("");
@@ -187,7 +228,7 @@ export default function AdminPedidoRapido() {
     setGuardando(true);
     setMsg("");
     const { error } = await supabase.from("pedidos_bazar").insert({
-      items: lineas.map(({ key, ...l }) => l),
+      items: lineas.map(({ key, ...l }) => ({ ...l, detalle: detalleLinea(l) })),
       total,
       bazar_activo: !!config.activo,
       recargo: Number(config.recargo) || 0,
@@ -274,8 +315,9 @@ export default function AdminPedidoRapido() {
 
           {/* Pedido actual */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-4 sticky top-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-white rounded-lg shadow sticky top-4 flex flex-col max-h-[calc(100vh-2rem)]">
+              {/* Encabezado */}
+              <div className="flex items-center justify-between p-4 pb-2 shrink-0">
                 <h2 className="font-bold text-gray-900">Pedido actual</h2>
                 <button
                   onClick={nuevoPedido}
@@ -285,58 +327,87 @@ export default function AdminPedidoRapido() {
                 </button>
               </div>
 
-              {lineas.length === 0 ? (
-                <p className="text-sm text-gray-400">
-                  Agrega productos desde la lista.
-                </p>
-              ) : (
-                <ul className="divide-y divide-gray-100 mb-3">
-                  {lineas.map((l) => (
-                    <li
-                      key={l.key}
-                      className="py-2 flex items-start justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">
-                          {l.nombre}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {l.casa} · {l.detalle}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-semibold">
-                          ${formatPrecio(l.subtotal)}
-                        </span>
-                        <button
-                          onClick={() => quitar(l.key)}
-                          className="text-gray-400 hover:text-red-600"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {/* Lista (lo único que scrollea) */}
+              <div className="flex-1 min-h-0 overflow-y-auto px-4">
+                {lineas.length === 0 ? (
+                  <p className="text-sm text-gray-400 py-2">
+                    Agrega productos desde la lista.
+                  </p>
+                ) : (
+                  <ul className="divide-y divide-gray-100">
+                    {lineas.map((l) => (
+                      <li key={l.key} className="py-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">
+                              {l.nombre}
+                            </p>
+                            <p className="text-xs text-gray-500">{l.casa}</p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-semibold">
+                              ${formatPrecio(l.subtotal)}
+                            </span>
+                            <button
+                              onClick={() => quitar(l.key)}
+                              className="text-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
 
-              <div className="border-t pt-3 flex justify-between items-center mb-4">
-                <span className="font-bold text-gray-900">Total</span>
-                <span className="text-xl font-bold text-gray-900">
-                  ${formatPrecio(total)}
-                </span>
+                        {/* Ajuste de ml / cantidad */}
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <button
+                            onClick={() =>
+                              l.tipo === "decant"
+                                ? cambiarMl(l.key, -1)
+                                : cambiarCantidad(l.key, -1)
+                            }
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+                          >
+                            <Minus size={13} />
+                          </button>
+                          <span className="text-xs text-gray-700 w-16 text-center">
+                            {detalleLinea(l)}
+                          </span>
+                          <button
+                            onClick={() =>
+                              l.tipo === "decant"
+                                ? cambiarMl(l.key, 1)
+                                : cambiarCantidad(l.key, 1)
+                            }
+                            className="w-6 h-6 flex items-center justify-center rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
+                          >
+                            <Plus size={13} />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
-              <button
-                onClick={guardarPedido}
-                disabled={lineas.length === 0 || guardando}
-                className="w-full bg-[#A47E3B] text-white py-2 rounded-md font-semibold hover:bg-[#8b6d32] disabled:bg-gray-300"
-              >
-                {guardando ? "Guardando…" : "Guardar pedido"}
-              </button>
-              {msg && (
-                <p className="text-xs text-center text-gray-600 mt-2">{msg}</p>
-              )}
+              {/* Total + guardar (fijo abajo) */}
+              <div className="p-4 pt-3 border-t shrink-0">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-bold text-gray-900">Total</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    ${formatPrecio(total)}
+                  </span>
+                </div>
+                <button
+                  onClick={guardarPedido}
+                  disabled={lineas.length === 0 || guardando}
+                  className="w-full bg-[#A47E3B] text-white py-2 rounded-md font-semibold hover:bg-[#8b6d32] disabled:bg-gray-300"
+                >
+                  {guardando ? "Guardando…" : "Guardar pedido"}
+                </button>
+                {msg && (
+                  <p className="text-xs text-center text-gray-600 mt-2">{msg}</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
