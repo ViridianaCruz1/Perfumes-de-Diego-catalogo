@@ -25,8 +25,17 @@ export default function Terminos() {
           <p>
             Estos términos y condiciones regulan el uso del sitio
             perfumesdediego.com y la compra de productos a través de Perfumes de
-            Diego. Al navegar el sitio o realizar un pedido, aceptas estos
-            términos. Si no estás de acuerdo, te pedimos no utilizar el sitio.
+            Diego. Al realizar cualquier pedido, ya sea a través del sitio o por
+            WhatsApp, aceptas estos términos en su totalidad, los hayas leído o
+            no, por encontrarse publicados en este sitio. Si no estás de acuerdo,
+            te pedimos no realizar ningún pedido.
+          </p>
+          <p>
+            Esta aceptación aplica a todo pedido, sin importar cuándo utilizaste
+            el sitio por primera vez. Si realizaste un pedido en el pasado y más
+            adelante acuerdas uno nuevo por WhatsApp o cualquier otro medio, ese
+            pedido posterior también queda sujeto a estos términos, incluidos los
+            relativos a los perfumes bajo pedido.
           </p>
         </section>
 
@@ -169,7 +178,72 @@ export default function Terminos() {
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
-          8. Propiedad intelectual
+          8. Perfumes bajo pedido
+        </h2>
+        <section className="space-y-4 text-[15px] leading-relaxed">
+          <p>
+            Algunos perfumes se ofrecen bajo pedido: no están en existencia y se
+            consiguen especialmente para ti tras tu solicitud. Al encargar un
+            perfume bajo pedido, aceptas las siguientes condiciones:
+          </p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Anticipo.</strong> Para iniciar tu pedido se requiere un
+              anticipo mínimo del 50% del valor del perfume. Dependiendo del
+              perfume, el anticipo puede ser mayor; se te informará el monto
+              antes de encargarlo.
+            </li>
+            <li>
+              <strong>Anticipo no reembolsable.</strong> Una vez que tu perfume
+              ha sido encargado con el proveedor, el anticipo no es reembolsable,
+              ya que corresponde a una compra realizada específicamente para ti.
+            </li>
+            <li>
+              <strong>Precio en firme.</strong> El precio de tu perfume queda
+              congelado al momento de dar el anticipo y no se ve afectado por
+              cambios posteriores de costo, disponibilidad o tipo de cambio.
+            </li>
+            <li>
+              <strong>Tiempo estimado y margen.</strong> Se te dará un tiempo
+              estimado de llegada, sujeto a un margen de hasta 2 semanas
+              adicionales. Por ejemplo, si el estimado es de 2 semanas, el plazo
+              puede extenderse hasta 4 semanas antes de que apliquen opciones de
+              cancelación o reembolso. Dentro de este margen no hay compensación
+              adicional por la espera.
+            </li>
+            <li>
+              <strong>Si no se consigue el perfume.</strong> Si por causas
+              ajenas (el proveedor no lo surte, se descontinúa, etc.) no logramos
+              conseguir tu perfume, se te reembolsará el anticipo de forma
+              íntegra.
+            </li>
+            <li>
+              <strong>Aviso de llegada y liquidación.</strong> Cuando tu perfume
+              esté listo, te avisaremos por WhatsApp. A partir del momento en que
+              enviamos ese aviso, cuentas con 5 días naturales para liquidar el
+              total de tu pedido, incluido el envío.
+            </li>
+            <li>
+              <strong>Falta de liquidación.</strong> Si el pedido no se liquida
+              dentro de esos 5 días, el perfume se libera para su venta y se
+              pierde el anticipo, sin derecho a reembolso ni compensación.
+            </li>
+            <li>
+              <strong>Autenticidad y presentación.</strong> Los perfumes son
+              100% originales, tal como los ofrece la casa. Las variaciones de
+              lote, concentración según disponibilidad o detalles de empaque no
+              son motivo de cancelación ni reembolso.
+            </li>
+            <li>
+              <strong>Preferencia personal.</strong> Al tratarse de un producto
+              encargado especialmente a tu solicitud, el hecho de que el aroma no
+              sea de tu agrado no constituye motivo de reembolso.
+            </li>
+          </ul>
+        </section>
+
+        <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
+          9. Propiedad intelectual
         </h2>
         <section className="space-y-4 text-[15px] leading-relaxed">
           <p>
@@ -182,7 +256,7 @@ export default function Terminos() {
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
-          9. Limitación de responsabilidad
+          10. Limitación de responsabilidad
         </h2>
         <section className="space-y-4 text-[15px] leading-relaxed">
           <p>
@@ -195,7 +269,7 @@ export default function Terminos() {
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
-          10. Privacidad
+          11. Privacidad
         </h2>
         <section className="space-y-4 text-[15px] leading-relaxed">
           <p>
@@ -211,7 +285,7 @@ export default function Terminos() {
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
-          11. Legislación aplicable
+          12. Legislación aplicable
         </h2>
         <section className="space-y-4 text-[15px] leading-relaxed">
           <p>
@@ -223,7 +297,7 @@ export default function Terminos() {
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
-          12. Contacto
+          13. Contacto
         </h2>
         <section className="space-y-4 text-[15px] leading-relaxed">
           <p>
