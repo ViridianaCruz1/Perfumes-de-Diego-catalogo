@@ -171,7 +171,44 @@ export default function AdminPedidoRapido() {
   );
 
   const agregar = (linea) => {
-    setLineas((prev) => [...prev, { ...linea, key: Date.now() + Math.random() }]);
+    setLineas((prev) => {
+      // Si el mismo perfume (mismo tipo) ya está en el pedido, suma en su línea.
+      const idx = prev.findIndex(
+        (l) => l.parfumId === linea.parfumId && l.tipo === linea.tipo,
+      );
+      if (idx !== -1) {
+        const parfum = parfumPorId(linea.parfumId);
+        const copia = [...prev];
+        const actual = copia[idx];
+        if (linea.tipo === "decant") {
+          const nuevoMl = Math.min(30, Number(actual.ml) + Number(linea.ml));
+          copia[idx] = {
+            ...actual,
+            ml: nuevoMl,
+            subtotal: parfum
+              ? calcularPrecioDecant(parfum, nuevoMl)
+              : actual.subtotal,
+          };
+        } else {
+          const stock = parfum
+            ? Math.max(1, Math.floor(Number(parfum.botellasDisponibles) || 1))
+            : actual.cantidad + linea.cantidad;
+          const nuevaCant = Math.min(
+            stock,
+            Number(actual.cantidad) + Number(linea.cantidad),
+          );
+          copia[idx] = {
+            ...actual,
+            cantidad: nuevaCant,
+            subtotal: parfum
+              ? Number(parfum.precio) * nuevaCant
+              : actual.subtotal,
+          };
+        }
+        return copia;
+      }
+      return [...prev, { ...linea, key: Date.now() + Math.random() }];
+    });
     setMsg("");
   };
 
