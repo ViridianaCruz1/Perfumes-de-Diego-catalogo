@@ -268,6 +268,16 @@ export default function AdminAvisos() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {(() => {
+                      const nuevos = grupo.avisos.filter(
+                        (a) => getEstado(a) === "nuevo",
+                      ).length;
+                      return nuevos > 0 ? (
+                        <span className="text-xs font-bold text-white bg-red-500 rounded-full px-2.5 py-1">
+                          {nuevos} nuevo{nuevos > 1 ? "s" : ""}
+                        </span>
+                      ) : null;
+                    })()}
                     <span className="text-xs font-semibold text-gray-600 bg-gray-200 rounded-full px-2.5 py-1">
                       {grupo.avisos.length}{" "}
                       {grupo.avisos.length === 1 ? "persona" : "personas"}
