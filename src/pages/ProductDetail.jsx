@@ -33,6 +33,8 @@ export default function ProductDetail() {
   const [yaAgrego, setYaAgrego] = useState(false);
   const addBlockRef = useRef(null);
   const [mostrarFloating, setMostrarFloating] = useState(false);
+  const finRef = useRef(null);
+  const [finVisible, setFinVisible] = useState(false);
   const [imgOriginal, setImgOriginal] = useState(false);
 
   // Si cambia el producto, vuelve a intentar la versión optimizada (wsrv).
@@ -80,6 +82,19 @@ export default function ProductDetail() {
     const obs = new IntersectionObserver(
       ([entry]) => setMostrarFloating(!entry.isIntersecting),
       { rootMargin: "0px 0px -40% 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [parfum]);
+
+  // Oculta las barras flotantes al llegar al final del producto (para no tapar
+  // el pie de página: Términos y Aviso de privacidad).
+  useEffect(() => {
+    const el = finRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setFinVisible(entry.isIntersecting),
+      { rootMargin: "0px 0px 40px 0px" },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -466,8 +481,12 @@ export default function ProductDetail() {
         whatsappText={`Hola Diego, me interesa saber más sobre ${parfum.nombre} de ${parfum.casa}`}
       />
 
+      {/* Sentinela: marca el final del producto para ocultar las barras
+          flotantes y no tapar el pie de página. */}
+      <div ref={finRef} aria-hidden="true" className="h-px w-full" />
+
       {/* Sticky CTA solo en mobile cuando el perfume está disponible */}
-      {estaDisponible && (
+      {estaDisponible && !finVisible && (
         <>
           {/* Spacer para que el sticky no tape el contenido */}
           <div className="sm:hidden h-20" aria-hidden="true" />
@@ -531,7 +550,7 @@ export default function ProductDetail() {
       )}
 
       {/* #7 — Botón flotante en escritorio cuando el principal se va de vista */}
-      {estaDisponible && mostrarFloating && (
+      {estaDisponible && mostrarFloating && !finVisible && (
         <div className="hidden sm:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-30 items-center gap-4 bg-white border border-gray-200 shadow-[0_8px_30px_rgba(0,0,0,0.18)] rounded-full pl-6 pr-2 py-2">
           <div className="text-sm font-semibold text-gray-800 whitespace-nowrap">
             {esDecant && !mililitros ? (

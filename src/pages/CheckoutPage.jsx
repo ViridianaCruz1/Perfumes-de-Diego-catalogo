@@ -240,6 +240,19 @@ export default function CheckoutPage() {
             totalCartPrice={totalWithDiscount}
             postalCode={postalCode}
           />
+
+          <p className="text-xs text-gray-500 text-center mt-3">
+            Al realizar tu pedido, aceptas nuestros{" "}
+            <a
+              href="/terminos"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-[#A47E3B]"
+            >
+              Términos y Condiciones
+            </a>
+            .
+          </p>
         </div>
       </div>
     </div>
