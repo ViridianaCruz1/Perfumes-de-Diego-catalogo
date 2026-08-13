@@ -135,6 +135,16 @@ export default function Terminos() {
             tiempos de entrega finales dependen de la paquetería y están fuera de
             nuestro control.
           </p>
+          <p>
+            Algunos códigos postales corresponden a zonas extendidas o de
+            cobertura especial de la paquetería. En estas zonas el paquete
+            permanece más días en reparto, lo que incrementa el riesgo de daños
+            durante el tránsito, como derrames o chorreos. Al elegir un envío a
+            una zona extendida, el cliente reconoce y acepta este riesgo: no nos
+            hacemos responsables por daños ocurridos durante el transporte a
+            dichas zonas, incluidos derrames o chorreos. Esto aplica tanto a
+            perfumes como a decants.
+          </p>
         </section>
 
         <h2 className="text-xl font-bold text-gray-900 mt-12 mb-4">
