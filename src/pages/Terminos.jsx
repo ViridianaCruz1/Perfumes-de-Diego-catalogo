@@ -136,6 +136,12 @@ export default function Terminos() {
             nuestro control.
           </p>
           <p>
+            Todos nuestros tiempos y estimados de entrega se expresan en días
+            hábiles: no se cuentan sábados, domingos ni días festivos. Por
+            ejemplo, un estimado de 2 semanas equivale a 10 días hábiles.
+          </p>
+
+          <p>
             Algunos códigos postales corresponden a zonas extendidas o de
             cobertura especial de la paquetería. En estas zonas el paquete
             permanece más días en reparto, lo que incrementa el riesgo de daños
@@ -215,11 +221,12 @@ export default function Terminos() {
             </li>
             <li>
               <strong>Tiempo estimado y margen.</strong> Se te dará un tiempo
-              estimado de llegada, sujeto a un margen de hasta 2 semanas
-              adicionales. Por ejemplo, si el estimado es de 2 semanas, el plazo
-              puede extenderse hasta 4 semanas antes de que apliquen opciones de
-              cancelación o reembolso. Dentro de este margen no hay compensación
-              adicional por la espera.
+              estimado de llegada, expresado en semanas hábiles y sujeto a un
+              margen de hasta 2 semanas hábiles adicionales. Por ejemplo, si el
+              estimado es de 2 semanas hábiles, el plazo puede extenderse hasta 4
+              semanas hábiles antes de que apliquen opciones de cancelación o
+              reembolso. Dentro de este margen no hay compensación adicional por
+              la espera.
             </li>
             <li>
               <strong>Si no se consigue el perfume.</strong> Si por causas
