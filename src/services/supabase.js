@@ -9,5 +9,13 @@ if (!supabaseUrl || !supabaseKey) {
   );
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    // Mantener la sesión: se guarda en el navegador y se renueva sola
+    // mientras el token de refresco siga siendo válido (config del panel).
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 export default supabase;
