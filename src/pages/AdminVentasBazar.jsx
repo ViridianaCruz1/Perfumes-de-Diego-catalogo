@@ -21,6 +21,7 @@ export default function AdminVentasBazar() {
   const [error, setError] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  const [tipoFiltro, setTipoFiltro] = useState("todos");
 
   const cargar = async () => {
     setCargando(true);
@@ -56,19 +57,30 @@ export default function AdminVentasBazar() {
     });
   }, [pedidos, desde, hasta]);
 
-  const totalVendido = useMemo(
-    () => filtrados.reduce((s, p) => s + Number(p.total || 0), 0),
-    [filtrados],
-  );
-  const ticketPromedio = filtrados.length
-    ? totalVendido / filtrados.length
-    : 0;
+  // Filtro por tipo de producto: todos | decant | botella
+  const coincideTipo = (l) =>
+    tipoFiltro === "todos" ? true : l.tipo === tipoFiltro;
+  const lineasDe = (p) => (p.items || []).filter(coincideTipo);
+  const subtotalDe = (p) =>
+    lineasDe(p).reduce((s, l) => s + Number(l.subtotal || 0), 0);
 
-  // Productos más vendidos (por ingreso), agregando las líneas de todos los pedidos.
+  // Pedidos que tienen al menos una línea del tipo filtrado.
+  const visibles = useMemo(
+    () => filtrados.filter((p) => lineasDe(p).length > 0),
+    [filtrados, tipoFiltro],
+  );
+
+  const totalVendido = useMemo(
+    () => visibles.reduce((s, p) => s + subtotalDe(p), 0),
+    [visibles, tipoFiltro],
+  );
+  const ticketPromedio = visibles.length ? totalVendido / visibles.length : 0;
+
+  // Productos más vendidos (por cantidad de ventas), solo del tipo filtrado.
   const topProductos = useMemo(() => {
     const acc = {};
-    for (const p of filtrados) {
-      for (const l of p.items || []) {
+    for (const p of visibles) {
+      for (const l of lineasDe(p)) {
         const key = l.nombre || "—";
         if (!acc[key]) acc[key] = { nombre: key, casa: l.casa, ingreso: 0, veces: 0 };
         acc[key].ingreso += Number(l.subtotal || 0);
@@ -78,7 +90,7 @@ export default function AdminVentasBazar() {
     return Object.values(acc)
       .sort((a, b) => b.veces - a.veces)
       .slice(0, 10);
-  }, [filtrados]);
+  }, [visibles, tipoFiltro]);
 
   const borrar = async (id) => {
     if (!window.confirm("¿Borrar este pedido? No se puede deshacer.")) return;
@@ -136,6 +148,29 @@ export default function AdminVentasBazar() {
               Limpiar
             </button>
           )}
+
+          <div className="ml-auto">
+            <label className="text-xs text-gray-500 block mb-1">Tipo</label>
+            <div className="flex gap-1">
+              {[
+                { v: "todos", l: "Todos" },
+                { v: "decant", l: "Decants" },
+                { v: "botella", l: "Botellas" },
+              ].map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => setTipoFiltro(o.v)}
+                  className={`text-sm px-3 py-2 rounded-md border ${
+                    tipoFiltro === o.v
+                      ? "bg-[#A47E3B] text-white border-[#A47E3B]"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {o.l}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Resumen */}
@@ -167,15 +202,15 @@ export default function AdminVentasBazar() {
             {/* Lista de pedidos */}
             <div className="lg:col-span-2">
               <h2 className="font-bold text-gray-900 mb-3">
-                Pedidos ({filtrados.length})
+                Pedidos ({visibles.length})
               </h2>
-              {filtrados.length === 0 ? (
+              {visibles.length === 0 ? (
                 <p className="text-gray-400 text-sm">
                   No hay pedidos en este rango.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {filtrados.map((p) => (
+                  {visibles.map((p) => (
                     <div
                       key={p.id}
                       className="bg-white rounded-lg shadow p-4"
@@ -187,7 +222,7 @@ export default function AdminVentasBazar() {
                             {p.bazar_activo ? ` · bazar +${p.recargo}%` : ""}
                           </p>
                           <ul className="mt-1 text-sm text-gray-700">
-                            {(p.items || []).map((l, i) => (
+                            {lineasDe(p).map((l, i) => (
                               <li key={i}>
                                 {l.nombre}{" "}
                                 <span className="text-gray-400">
@@ -200,7 +235,9 @@ export default function AdminVentasBazar() {
                         </div>
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <span className="text-lg font-bold text-gray-900">
-                            ${formatPrecio(p.total)}
+                            ${formatPrecio(
+                              tipoFiltro === "todos" ? p.total : subtotalDe(p),
+                            )}
                           </span>
                           <button
                             onClick={() => borrar(p.id)}
