@@ -7,9 +7,6 @@ import {
   UMBRAL_ENVIO_GRATIS,
 } from "../functions/envioGratis";
 
-const AVISO_ESPECIALES =
-  "Los 30 ml de Louis Vuitton ya llevan precio especial, así que no suman para el envío gratis.";
-
 function EnvioGratisProgress() {
   const {
     cartItems,
@@ -21,7 +18,7 @@ function EnvioGratisProgress() {
   const [showTerms, setShowTerms] = useState(false);
   const { bazarActivo } = useParfums();
 
-  const { califica, falta, porcentaje, hayEspeciales, hayElegibles } =
+  const { califica, falta, porcentaje, hayElegibles } =
     getEstadoEnvioGratis({
       cartItems,
       isDiscountApplied,
@@ -32,7 +29,7 @@ function EnvioGratisProgress() {
     });
 
   // Sin decants en el carrito: no hay nada que mostrar.
-  if (!hayElegibles && !hayEspeciales) return null;
+  if (!hayElegibles) return null;
 
   const botonTerminos = (
     <>
@@ -58,10 +55,6 @@ function EnvioGratisProgress() {
               individuales.
             </li>
             <li>
-              Los <strong>30 ml de Louis Vuitton</strong> no suman para el monto
-              mínimo, porque ya se venden con precio especial.
-            </li>
-            <li>
               Válido solo para <strong>zonas regulares de DHL</strong>. No aplica
               en zonas extendidas o de cobertura especial.
             </li>
@@ -74,16 +67,6 @@ function EnvioGratisProgress() {
       )}
     </>
   );
-
-  // Solo trae 30 ml de Louis Vuitton: no hay barra que avanzar, solo el aviso.
-  if (!hayElegibles) {
-    return (
-      <div className="px-6 py-3 bg-gradient-to-r from-amber-50 to-white border-b border-amber-100">
-        <p className="text-xs text-gray-600 text-center">{AVISO_ESPECIALES}</p>
-        {botonTerminos}
-      </div>
-    );
-  }
 
   return (
     <div className="px-6 py-3 bg-gradient-to-r from-amber-50 to-white border-b border-amber-100">
@@ -111,12 +94,6 @@ function EnvioGratisProgress() {
           style={{ width: `${porcentaje}%` }}
         />
       </div>
-
-      {hayEspeciales && (
-        <p className="text-[10px] text-gray-500 text-center mt-1.5">
-          {AVISO_ESPECIALES}
-        </p>
-      )}
 
       {botonTerminos}
     </div>
