@@ -27,6 +27,7 @@ const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const AdminPedidoRapido = lazy(() => import("./pages/AdminPedidoRapido"));
 const AdminVentasBazar = lazy(() => import("./pages/AdminVentasBazar"));
+const AdminAjustePrecios = lazy(() => import("./pages/AdminAjustePrecios"));
 const AdminPerfumesList = lazy(() => import("./pages/AdminPerfumesList"));
 const AdminPerfumeEdit = lazy(() => import("./pages/AdminPerfumeEdit"));
 const AdminPerfumeCreate = lazy(() => import("./pages/AdminPerfumeCreate"));
@@ -103,6 +104,17 @@ const router = createBrowserRouter([
     element: (
       <ProtectedAdminRoute>
         <AdminVentasBazar />
+      </ProtectedAdminRoute>
+    ),
+    errorElement: <RouterErrorElement />,
+  },
+
+  // Ajuste de precios por casa
+  {
+    path: "/admin/ajuste-precios",
+    element: (
+      <ProtectedAdminRoute>
+        <AdminAjustePrecios />
       </ProtectedAdminRoute>
     ),
     errorElement: <RouterErrorElement />,

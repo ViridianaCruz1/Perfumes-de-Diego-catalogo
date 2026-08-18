@@ -70,6 +70,12 @@ export default function AdminPanel() {
           >
             📊 Ventas del bazar
           </a>
+          <a
+            href="/admin/ajuste-precios"
+            className="inline-block mt-4 ml-3 border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-50"
+          >
+            🏷️ Ajustar precios por casa
+          </a>
         </div>
 
         {/* Sección Avisos de stock */}

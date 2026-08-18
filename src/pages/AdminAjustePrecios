@@ -1,0 +1,281 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
+import supabase from "../services/supabase";
+import { formatPrecio } from "../functions/formatPrecio";
+
+function redondearArriba10(n) {
+  return Math.ceil(n / 10) * 10;
+}
+
+export default function AdminAjustePrecios() {
+  const [parfums, setParfums] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+  const [seleccion, setSeleccion] = useState(() => new Set());
+  const [pct, setPct] = useState("");
+  const [preview, setPreview] = useState(null); // array o null
+  const [guardando, setGuardando] = useState(false);
+  const [resultado, setResultado] = useState("");
+
+  // Precios CRUDOS, directo de la base (sin el recargo del modo bazar).
+  const cargar = async () => {
+    setCargando(true);
+    const { data, error } = await supabase
+      .from("parfums")
+      .select("id, nombre, casa, precio, precio30ml, stock")
+      .order("casa", { ascending: true });
+    if (error) {
+      setError("No se pudieron cargar los perfumes. Revisa permisos (RLS).");
+    } else {
+      setParfums(data || []);
+    }
+    setCargando(false);
+  };
+
+  useEffect(() => {
+    cargar();
+  }, []);
+
+  // Casas distintas con su conteo de productos.
+  const casas = useMemo(() => {
+    const map = new Map();
+    for (const p of parfums) {
+      const c = p.casa || "(sin casa)";
+      map.set(c, (map.get(c) || 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([nombre, conteo]) => ({ nombre, conteo }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }, [parfums]);
+
+  const toggleCasa = (nombre) => {
+    setSeleccion((prev) => {
+      const s = new Set(prev);
+      s.has(nombre) ? s.delete(nombre) : s.add(nombre);
+      return s;
+    });
+    setPreview(null);
+    setResultado("");
+  };
+
+  const generarPreview = () => {
+    const p = Number(pct);
+    if (!seleccion.size || !p || p <= 0) return;
+    const factor = 1 + p / 100;
+    const filas = parfums
+      .filter((x) => seleccion.has(x.casa || "(sin casa)"))
+      .map((x) => {
+        const precioAntes = Number(x.precio) || 0;
+        const precioDespues = redondearArriba10(precioAntes * factor);
+        const p30Antes = x.precio30ml != null ? Number(x.precio30ml) : null;
+        const p30Despues =
+          p30Antes != null && p30Antes > 0
+            ? redondearArriba10(p30Antes * factor)
+            : p30Antes;
+        return {
+          id: x.id,
+          nombre: x.nombre,
+          casa: x.casa,
+          stock: x.stock,
+          precioAntes,
+          precioDespues,
+          p30Antes,
+          p30Despues,
+        };
+      });
+    setPreview(filas);
+    setResultado("");
+  };
+
+  const aplicar = async () => {
+    if (!preview || preview.length === 0) return;
+    if (
+      !window.confirm(
+        `Vas a modificar ${preview.length} perfume(s) de ${seleccion.size} casa(s), +${pct}%. Esta acción no se puede deshacer. ¿Confirmas?`,
+      )
+    )
+      return;
+
+    setGuardando(true);
+    setResultado("");
+    let ok = 0;
+    let fail = 0;
+    for (const f of preview) {
+      const updates = { precio: f.precioDespues };
+      if (f.p30Despues != null) updates.precio30ml = f.p30Despues;
+      const { error } = await supabase
+        .from("parfums")
+        .update(updates)
+        .eq("id", f.id);
+      if (error) fail++;
+      else ok++;
+    }
+    setGuardando(false);
+    setResultado(
+      fail === 0
+        ? `Listo: ${ok} perfume(s) actualizado(s).`
+        : `Actualizados ${ok}, con ${fail} error(es). Revisa permisos e intenta de nuevo con los que fallaron.`,
+    );
+    setPreview(null);
+    setSeleccion(new Set());
+    setPct("");
+    cargar();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-gray-900 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <Link to="/admin" className="flex items-center gap-2 hover:text-gray-300">
+            <ArrowLeft size={20} /> Volver al panel
+          </Link>
+          <h1 className="text-lg font-bold">Ajuste de precios por casa</h1>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex gap-3">
+          <AlertTriangle className="text-amber-600 shrink-0" size={20} />
+          <p className="text-sm text-amber-800">
+            Esta herramienta cambia los precios reales de tu catálogo de forma
+            permanente. Revisa siempre la vista previa antes de confirmar. No hay
+            deshacer.
+          </p>
+        </div>
+
+        {cargando ? (
+          <p className="text-gray-500 text-sm">Cargando catálogo…</p>
+        ) : error ? (
+          <p className="text-red-600 text-sm">{error}</p>
+        ) : (
+          <>
+            {/* Paso 1: casas */}
+            <div className="bg-white rounded-lg shadow p-5 mb-5">
+              <h2 className="font-bold text-gray-900 mb-1">
+                1. Elige las casas a ajustar
+              </h2>
+              <p className="text-xs text-gray-500 mb-3">
+                Puedes seleccionar varias. El mismo porcentaje se aplicará a
+                todas las elegidas.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {casas.map((c) => (
+                  <label
+                    key={c.nombre}
+                    className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${
+                      seleccion.has(c.nombre)
+                        ? "border-[#A47E3B] bg-[#faf6ef]"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={seleccion.has(c.nombre)}
+                      onChange={() => toggleCasa(c.nombre)}
+                      className="accent-[#A47E3B]"
+                    />
+                    <span className="flex-1 truncate">{c.nombre}</span>
+                    <span className="text-xs text-gray-400">{c.conteo}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Paso 2: porcentaje */}
+            <div className="bg-white rounded-lg shadow p-5 mb-5">
+              <h2 className="font-bold text-gray-900 mb-3">
+                2. Porcentaje de aumento
+              </h2>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={pct}
+                  onChange={(e) => {
+                    setPct(e.target.value);
+                    setPreview(null);
+                  }}
+                  placeholder="Ej. 12"
+                  className="w-32 border border-gray-300 rounded-md px-3 py-2 text-sm"
+                />
+                <span className="text-gray-600">%</span>
+                <button
+                  onClick={generarPreview}
+                  disabled={!seleccion.size || !Number(pct)}
+                  className="ml-auto bg-gray-900 text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-gray-800 disabled:bg-gray-300"
+                >
+                  Ver vista previa
+                </button>
+              </div>
+              {resultado && (
+                <p className="text-sm text-green-700 mt-3 font-medium">
+                  {resultado}
+                </p>
+              )}
+            </div>
+
+            {/* Paso 3: vista previa */}
+            {preview && (
+              <div className="bg-white rounded-lg shadow p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-bold text-gray-900">
+                    3. Vista previa ({preview.length} perfumes)
+                  </h2>
+                  <button
+                    onClick={aplicar}
+                    disabled={guardando}
+                    className="bg-[#A47E3B] text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-[#8b6d32] disabled:bg-gray-300"
+                  >
+                    {guardando ? "Guardando…" : "Confirmar y guardar"}
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[11px] uppercase text-gray-400 border-b">
+                        <th className="py-2 pr-3">Perfume</th>
+                        <th className="py-2 pr-3">Casa</th>
+                        <th className="py-2 pr-3">Antes</th>
+                        <th className="py-2 pr-3">Después</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {preview.map((f) => (
+                        <tr key={f.id} className="border-b border-gray-100">
+                          <td className="py-2 pr-3 font-medium text-gray-800">
+                            {f.nombre}
+                          </td>
+                          <td className="py-2 pr-3 text-gray-500">{f.casa}</td>
+                          <td className="py-2 pr-3 text-gray-500">
+                            ${formatPrecio(f.precioAntes)}
+                            {f.stock === false ? "/ml" : ""}
+                            {f.p30Antes != null && f.p30Antes > 0 && (
+                              <span className="block text-[11px] text-gray-400">
+                                30ml: ${formatPrecio(f.p30Antes)}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 pr-3 font-semibold text-gray-900">
+                            ${formatPrecio(f.precioDespues)}
+                            {f.stock === false ? "/ml" : ""}
+                            {f.p30Despues != null && f.p30Antes > 0 && (
+                              <span className="block text-[11px] text-[#A47E3B]">
+                                30ml: ${formatPrecio(f.p30Despues)}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
