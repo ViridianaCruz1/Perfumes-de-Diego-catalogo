@@ -11,12 +11,12 @@ import { formatPrecio } from "../functions/formatPrecio";
 import { imagenThumb } from "../functions/imagenThumb";
 
 // Una fila del catálogo con su propio control para agregar.
-function FilaPerfume({ parfum, bazarActivo, minDecant, onAgregar }) {
+function FilaPerfume({ parfum, bazarActivo, minDecant, minSiempre, onAgregar }) {
   const esDecant = parfum.stock === false;
   const esBotella = parfum.stock === true;
 
   const opciones = esDecant
-    ? getOpcionesMililitros(parfum, { bazarActivo, minDecant })
+    ? getOpcionesMililitros(parfum, { bazarActivo, minDecant, minSiempre })
     : [];
   const [ml, setMl] = useState(opciones[0]?.value ?? "");
   const stockBotellas = Math.max(
@@ -338,6 +338,7 @@ export default function AdminPedidoRapido() {
                         parfum={p}
                         bazarActivo={!!config.activo}
                         minDecant={Number(config.min_decant) || 0}
+                        minSiempre={Number(config.min_decant_siempre) || 0}
                         onAgregar={agregar}
                       />
                     ))}

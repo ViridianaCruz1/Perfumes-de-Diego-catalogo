@@ -18,20 +18,25 @@ const isEnsarOud = (parfum) => parfum?.casa === "Ensar Oud";
 
 /**
  * Devuelve las opciones de ml disponibles para un perfume.
- * En modo bazar, oculta las cantidades cuyo precio quede por debajo del
- * mínimo de compra por decant. Ensar Oud no se toca (no va al bazar).
+ * Oculta las cantidades cuyo precio quede por debajo del mínimo de compra por
+ * decant. Hay dos mínimos: uno que aplica SIEMPRE (minSiempre) y otro solo en
+ * modo bazar (minDecant); se usa el mayor de los que apliquen. Ensar Oud no se
+ * toca.
  * @param {object} parfum
- * @param {{bazarActivo?: boolean, minDecant?: number}} opts
+ * @param {{bazarActivo?: boolean, minDecant?: number, minSiempre?: number}} opts
  * @returns {Array<{value: number, label: string}>}
  */
 export function getOpcionesMililitros(parfum, opts = {}) {
-  const { bazarActivo = false, minDecant = 0 } = opts;
+  const { bazarActivo = false, minDecant = 0, minSiempre = 0 } = opts;
   const lista = isEnsarOud(parfum) ? OPCIONES_ENSAR_OUD : OPCIONES_DEFAULT;
 
+  // Mínimo efectivo: el permanente siempre; en bazar, el mayor de los dos.
+  const efectivo = bazarActivo ? Math.max(minSiempre, minDecant) : minSiempre;
+
   let valores = lista;
-  if (bazarActivo && minDecant > 0 && !isEnsarOud(parfum)) {
+  if (efectivo > 0 && !isEnsarOud(parfum)) {
     const filtradas = lista.filter(
-      (ml) => calcularPrecioDecant(parfum, ml) >= minDecant,
+      (ml) => calcularPrecioDecant(parfum, ml) >= efectivo,
     );
     // Si nada alcanza el mínimo, deja al menos la cantidad más grande.
     valores = filtradas.length > 0 ? filtradas : [lista[lista.length - 1]];

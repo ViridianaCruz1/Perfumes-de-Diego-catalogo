@@ -9,6 +9,7 @@ export function ParfumsProvider({ children }) {
   const [error, setError] = useState(null);
   const [bazarActivo, setBazarActivo] = useState(false);
   const [minDecantBazar, setMinDecantBazar] = useState(0);
+  const [minDecantSiempre, setMinDecantSiempre] = useState(0);
 
   const fetchParfums = useCallback(async () => {
     try {
@@ -19,6 +20,7 @@ export function ParfumsProvider({ children }) {
       getConfigBazar().then((c) => {
         setBazarActivo(!!c?.activo);
         setMinDecantBazar(Number(c?.min_decant) || 0);
+        setMinDecantSiempre(Number(c?.min_decant_siempre) || 0);
       });
 
       // Normalizar datos desde origen (mismo patrón que ProductGrid usaba)
@@ -53,6 +55,7 @@ export function ParfumsProvider({ children }) {
         error,
         bazarActivo,
         minDecantBazar,
+        minDecantSiempre,
         refresh: fetchParfums, // por si quieres recargar manualmente
       }}
     >

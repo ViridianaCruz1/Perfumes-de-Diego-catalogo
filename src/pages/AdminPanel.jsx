@@ -15,6 +15,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { getCountAvisosNuevos } from "../functions/getAvisosStock";
 import ModoBazarControl from "../ui/ModoBazarControl";
+import MinDecantControl from "../ui/MinDecantControl";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -257,6 +258,10 @@ export default function AdminPanel() {
         </div>
 
         {/* Modo Bazar — hasta el fondo del panel */}
+        <div className="mt-8">
+          <MinDecantControl />
+        </div>
+
         <div className="mt-8">
           <ModoBazarControl />
         </div>

@@ -13,10 +13,11 @@ export default function SelectMililitros({
   variant = "default",
   pulse = false,
 }) {
-  const { bazarActivo, minDecantBazar } = useParfums();
+  const { bazarActivo, minDecantBazar, minDecantSiempre } = useParfums();
   const opciones = getOpcionesMililitros(parfum, {
     bazarActivo,
     minDecant: minDecantBazar,
+    minSiempre: minDecantSiempre,
   });
   const placeholder = getPlaceholderMililitros(parfum);
   const esCta = variant === "cta";

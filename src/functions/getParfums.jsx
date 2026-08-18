@@ -24,7 +24,7 @@ export async function getConfigBazar() {
   try {
     const { data } = await supabase
       .from("config_bazar")
-      .select("activo, recargo, min_decant")
+      .select("activo, recargo, min_decant, min_decant_siempre")
       .eq("id", 1)
       .single();
     _configCache = data || { activo: false, recargo: 0 };
