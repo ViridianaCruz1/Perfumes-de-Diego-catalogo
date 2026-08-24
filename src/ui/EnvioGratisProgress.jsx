@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
-import { useParfums } from "../context/ParfumsContext";
 import { formatPrecio } from "../functions/formatPrecio";
 import {
   getEstadoEnvioGratis,
@@ -16,7 +15,6 @@ function EnvioGratisProgress() {
     discountTarget,
   } = useCart();
   const [showTerms, setShowTerms] = useState(false);
-  const { bazarActivo } = useParfums();
 
   const { califica, falta, porcentaje, hayElegibles } =
     getEstadoEnvioGratis({
@@ -25,7 +23,6 @@ function EnvioGratisProgress() {
       discountType,
       discountValue,
       discountTarget,
-      bazarActivo,
     });
 
   // Sin decants en el carrito: no hay nada que mostrar.

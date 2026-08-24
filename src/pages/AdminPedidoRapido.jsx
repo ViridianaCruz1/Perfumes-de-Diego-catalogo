@@ -11,12 +11,12 @@ import { formatPrecio } from "../functions/formatPrecio";
 import { imagenThumb } from "../functions/imagenThumb";
 
 // Una fila del catálogo con su propio control para agregar.
-function FilaPerfume({ parfum, bazarActivo, minDecant, minSiempre, onAgregar }) {
+function FilaPerfume({ parfum, minSiempre, onAgregar }) {
   const esDecant = parfum.stock === false;
   const esBotella = parfum.stock === true;
 
   const opciones = esDecant
-    ? getOpcionesMililitros(parfum, { bazarActivo, minDecant, minSiempre })
+    ? getOpcionesMililitros(parfum, { minSiempre })
     : [];
   const [ml, setMl] = useState(opciones[0]?.value ?? "");
   const stockBotellas = Math.max(
@@ -127,7 +127,7 @@ function FilaPerfume({ parfum, bazarActivo, minDecant, minSiempre, onAgregar }) 
 
 export default function AdminPedidoRapido() {
   const [parfums, setParfums] = useState([]);
-  const [config, setConfig] = useState({ activo: false, recargo: 0, min_decant: 0 });
+  const [config, setConfig] = useState({ min_decant_siempre: 0 });
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [lineas, setLineas] = useState([]);
@@ -138,7 +138,7 @@ export default function AdminPedidoRapido() {
     (async () => {
       const [p, c] = await Promise.all([getParfums(), getConfigBazar()]);
       setParfums(p || []);
-      setConfig(c || { activo: false, recargo: 0, min_decant: 0 });
+      setConfig(c || { min_decant_siempre: 0 });
       setCargando(false);
     })();
   }, []);
@@ -267,8 +267,8 @@ export default function AdminPedidoRapido() {
     const { error } = await supabase.from("pedidos_bazar").insert({
       items: lineas.map(({ key, ...l }) => ({ ...l, detalle: detalleLinea(l) })),
       total,
-      bazar_activo: !!config.activo,
-      recargo: Number(config.recargo) || 0,
+      bazar_activo: false,
+      recargo: 0,
     });
     setGuardando(false);
     if (error) {
@@ -291,15 +291,6 @@ export default function AdminPedidoRapido() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {config.activo && (
-          <div className="mb-4 rounded-md bg-amber-50 border border-amber-200 px-4 py-2 text-sm text-amber-800">
-            Modo bazar ACTIVO · +{config.recargo}% ya incluido en los precios
-            {config.min_decant > 0
-              ? ` · mínimo $${formatPrecio(config.min_decant)} por decant`
-              : ""}
-          </div>
-        )}
-
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Catálogo */}
           <div className="lg:col-span-2">
@@ -336,8 +327,6 @@ export default function AdminPedidoRapido() {
                       <FilaPerfume
                         key={p.id}
                         parfum={p}
-                        bazarActivo={!!config.activo}
-                        minDecant={Number(config.min_decant) || 0}
                         minSiempre={Number(config.min_decant_siempre) || 0}
                         onAgregar={agregar}
                       />

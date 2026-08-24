@@ -13,10 +13,8 @@ export default function SelectMililitros({
   variant = "default",
   pulse = false,
 }) {
-  const { bazarActivo, minDecantBazar, minDecantSiempre } = useParfums();
+  const { minDecantSiempre } = useParfums();
   const opciones = getOpcionesMililitros(parfum, {
-    bazarActivo,
-    minDecant: minDecantBazar,
     minSiempre: minDecantSiempre,
   });
   const placeholder = getPlaceholderMililitros(parfum);

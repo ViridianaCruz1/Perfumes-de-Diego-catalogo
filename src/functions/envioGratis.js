@@ -20,20 +20,7 @@ export function getEstadoEnvioGratis({
   discountType = null,
   discountValue = 0,
   discountTarget = "ALL",
-  bazarActivo = false,
 } = {}) {
-  // Durante el modo bazar no hay envío gratis (se entrega en mano).
-  if (bazarActivo) {
-    return {
-      total: 0,
-      califica: false,
-      falta: UMBRAL_ENVIO_GRATIS,
-      porcentaje: 0,
-      hayElegibles: false,
-      bazar: true,
-    };
-  }
-
   const elegibles = cartItems.filter((i) => i.tipoVenta === "decant");
 
   const subtotal = elegibles.reduce(

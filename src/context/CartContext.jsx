@@ -3,7 +3,6 @@ import supabase from "../services/supabase";
 import { useToast } from "./ToastContext";
 import { track } from "@vercel/analytics";
 import { getCupon } from "../functions/cuponBienvenida";
-import { getConfigBazar } from "../functions/getParfums";
 import {
   calcularPrecioDecantCarrito,
   getIncrementoMililitros,
@@ -273,13 +272,6 @@ export function CartProvider({ children }) {
     const fail = (msg) => {
       if (!silent) setErrorMessage(msg);
     };
-
-    // Durante el modo bazar los cupones no aplican.
-    const cfgBazar = await getConfigBazar();
-    if (cfgBazar?.activo) {
-      fail("Los cupones no aplican durante el evento.");
-      return;
-    }
 
     // 1) Validar contra Supabase. La lista de códigos nunca sale al navegador.
     const { data, error } = await supabase.rpc("validar_cupon", {

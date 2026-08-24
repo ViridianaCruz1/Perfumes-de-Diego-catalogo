@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getCountAvisosNuevos } from "../functions/getAvisosStock";
-import ModoBazarControl from "../ui/ModoBazarControl";
 import MinDecantControl from "../ui/MinDecantControl";
 
 export default function AdminPanel() {
@@ -262,9 +261,6 @@ export default function AdminPanel() {
           <MinDecantControl />
         </div>
 
-        <div className="mt-8">
-          <ModoBazarControl />
-        </div>
 
       </main>
     </div>

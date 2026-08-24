@@ -7,10 +7,8 @@ const COLS_GRID =
   "id, nombre, casa, precio, botellasDisponibles, image, disponible, disponible_desde, categoria, stock, concentracion, notas, tiktokLink, esBestSeller";
 
 // ============================================================
-//  MODO BAZAR — recargo global sobre los precios
-//  El recargo se aplica AQUÍ, en la única capa donde se leen los precios de
-//  la base, para que tarjetas, PDP, carrito y WhatsApp queden todos iguales.
-//  Ensar Oud queda EXCLUIDO (no va al bazar).
+//  CONFIG DE LA TIENDA (una fila en config_bazar).
+//  Hoy solo guarda el mínimo de compra por decant (min_decant_siempre).
 // ============================================================
 let _configCache = null;
 let _configCacheAt = 0;
@@ -24,42 +22,15 @@ export async function getConfigBazar() {
   try {
     const { data } = await supabase
       .from("config_bazar")
-      .select("activo, recargo, min_decant, min_decant_siempre")
+      .select("min_decant_siempre")
       .eq("id", 1)
       .single();
-    _configCache = data || { activo: false, recargo: 0 };
+    _configCache = data || { min_decant_siempre: 0 };
   } catch {
-    _configCache = { activo: false, recargo: 0 };
+    _configCache = { min_decant_siempre: 0 };
   }
   _configCacheAt = ahora;
   return _configCache;
-}
-
-function redondearArriba10(n) {
-  return Math.ceil(n / 10) * 10;
-}
-
-function aplicarRecargoUno(parfum, config) {
-  if (!parfum) return parfum;
-  if (!config?.activo || !config.recargo) return parfum;
-  if (parfum.casa === "Ensar Oud") return parfum; // no va al bazar
-
-  const factor = 1 + Number(config.recargo) / 100;
-  const nuevo = { ...parfum };
-  if (nuevo.precio != null) {
-    nuevo.precio = redondearArriba10(Number(nuevo.precio) * factor);
-  }
-  return nuevo;
-}
-
-// Aplica el recargo a un perfume o a una lista, según la config actual.
-async function conRecargo(parfums) {
-  const config = await getConfigBazar();
-  if (!config.activo) return parfums;
-  if (Array.isArray(parfums)) {
-    return parfums.map((p) => aplicarRecargoUno(p, config));
-  }
-  return aplicarRecargoUno(parfums, config);
 }
 
 
@@ -69,7 +40,7 @@ export default async function getParfums() {
     console.error("Error fetching parfums:", error);
     throw new Error("Could not fetch parfums");
   }
-  return conRecargo(data);
+  return data;
 }
 
 export async function getParfumById(id) {
@@ -83,7 +54,7 @@ export async function getParfumById(id) {
     console.error("Error fetching parfum:", error);
     throw new Error("Could not fetch parfum");
   }
-  return conRecargo(data);
+  return data;
 }
 export async function getBestSellers() {
   const { data, error } = await supabase
@@ -95,7 +66,7 @@ export async function getBestSellers() {
     console.error("Error fetching best sellers:", error);
     throw new Error("Could not fetch best sellers");
   }
-  return conRecargo(data);
+  return data;
 }
 export async function getRelacionados(casa, excluirId) {
   const { data, error } = await supabase
@@ -119,7 +90,7 @@ export async function getRelacionados(casa, excluirId) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  return conRecargo(shuffled.slice(0, 4));
+  return shuffled.slice(0, 4);
 }
 export async function getPerfumesConTikTok() {
   const { data, error } = await supabase
@@ -132,5 +103,5 @@ export async function getPerfumesConTikTok() {
     console.error("Error fetching perfumes con TikTok:", error);
     return [];
   }
-  return conRecargo(data);
+  return data;
 }

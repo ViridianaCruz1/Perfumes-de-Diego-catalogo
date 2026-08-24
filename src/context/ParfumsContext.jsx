@@ -7,8 +7,6 @@ export function ParfumsProvider({ children }) {
   const [parfums, setParfums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [bazarActivo, setBazarActivo] = useState(false);
-  const [minDecantBazar, setMinDecantBazar] = useState(0);
   const [minDecantSiempre, setMinDecantSiempre] = useState(0);
 
   const fetchParfums = useCallback(async () => {
@@ -18,8 +16,6 @@ export function ParfumsProvider({ children }) {
 
       // ¿Modo bazar activo? (para ocultar cupones/envío gratis en la UI)
       getConfigBazar().then((c) => {
-        setBazarActivo(!!c?.activo);
-        setMinDecantBazar(Number(c?.min_decant) || 0);
         setMinDecantSiempre(Number(c?.min_decant_siempre) || 0);
       });
 
@@ -53,8 +49,6 @@ export function ParfumsProvider({ children }) {
         parfums,
         loading,
         error,
-        bazarActivo,
-        minDecantBazar,
         minDecantSiempre,
         refresh: fetchParfums, // por si quieres recargar manualmente
       }}
