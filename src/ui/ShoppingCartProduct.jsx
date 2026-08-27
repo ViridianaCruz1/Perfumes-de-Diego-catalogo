@@ -132,6 +132,16 @@ function ShoppingCartProduct({ soloLectura = false }) {
               <h3 className="text-sm font-medium">{item.nombre}</h3>
               <p className="text-gray-500 text-sm">{item.casa}</p>
 
+              {soloLectura && (
+                <p className="text-gray-700 text-sm font-medium">
+                  {item.tipoVenta === "decant"
+                    ? `${item.mililitros} ml`
+                    : `${item.cantidad} ${
+                        item.cantidad > 1 ? "piezas" : "pieza"
+                      }`}
+                </p>
+              )}
+
               {item.tipoVenta === "botella" && (
                 <p className="text-gray-500 text-sm">
                   Contenido: {item.mlBotella} ml
