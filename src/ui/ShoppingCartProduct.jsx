@@ -135,7 +135,9 @@ function ShoppingCartProduct({ soloLectura = false }) {
               {soloLectura && (
                 <p className="text-gray-700 text-sm font-medium">
                   {item.tipoVenta === "decant"
-                    ? `${item.mililitros} ml`
+                    ? `${item.mililitros} ml · $${formatPrecio(
+                        item.precioUnitario,
+                      )}/ml`
                     : `${item.cantidad} ${
                         item.cantidad > 1 ? "piezas" : "pieza"
                       }`}
