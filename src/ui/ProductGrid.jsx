@@ -1,4 +1,5 @@
 import ProductCard from "./ProductCard";
+import CotizarPerfume from "./CotizarPerfume";
 import { useEffect, useState, useRef, useMemo } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { useOrder } from "../context/OrderContext.jsx";
@@ -229,13 +230,20 @@ export default function ProductGrid({
         </div>
 
         {filteredParfums.length === 0 ? (
-          <p className="text-center text-gray-500 mt-8">
-            {searchResult
-              ? `No encontramos resultados para "${
-                  searchResult.nombre || searchResult.query
-                }". Revisa la ortografía o intenta con otro término.`
-              : "No hay perfumes que coincidan con los filtros seleccionados."}
-          </p>
+          <div className="max-w-2xl mx-auto mt-8">
+            <p className="text-center text-gray-500 mb-6">
+              {searchResult
+                ? `No encontramos resultados para "${
+                    searchResult.nombre || searchResult.query
+                  }". Revisa la ortografía o intenta con otro término.`
+                : "No hay perfumes que coincidan con los filtros seleccionados."}
+            </p>
+            <CotizarPerfume
+              sugerencia={
+                searchResult ? searchResult.nombre || searchResult.query : ""
+              }
+            />
+          </div>
         ) : (
           <div
             ref={gridRef}
