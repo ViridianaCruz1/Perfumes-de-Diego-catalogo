@@ -34,6 +34,10 @@ function Header({ onSearchResult }) {
       nombre: "Visto en TikTok",
       accion: () => navigate("/tiktok"),
     },
+    {
+      nombre: "¿Buscas otro perfume?",
+      accion: () => navigate("/pedido-especial"),
+    },
   ];
 
   return (
