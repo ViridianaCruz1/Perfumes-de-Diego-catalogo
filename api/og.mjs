@@ -71,7 +71,19 @@ const DEFAULT_IMAGE =
   "https://xpxfacujdaiugphvpili.supabase.co/storage/v1/object/public/perfumsImages/foto%20portada.jpeg";
 const SITE_NAME = "Perfumes de Diego";
 
+// WhatsApp/Facebook rechazan imágenes muy pesadas (PNG de varios MB) para el
+// preview. Servimos una versión JPEG redimensionada por wsrv.nl (~1200px),
+// ligera y aceptada por todos los bots.
+function ogImage(url) {
+  if (!url || typeof url !== "string" || !/^https?:\/\//.test(url)) return url;
+  const sinProtocolo = url.replace(/^https?:\/\//, "");
+  return `https://wsrv.nl/?url=${encodeURIComponent(
+    sinProtocolo,
+  )}&w=1200&output=jpg&q=80`;
+}
+
 function buildOgHtml({ title, description, image, url, bodyHtml = "", jsonLd = [] }) {
+  const img = ogImage(image);
   const ldScripts = jsonLd
     .map(
       (obj) =>
@@ -88,13 +100,15 @@ function buildOgHtml({ title, description, image, url, bodyHtml = "", jsonLd = [
   <meta property="og:type" content="website" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
-  <meta property="og:image" content="${esc(image)}" />
+  <meta property="og:image" content="${esc(img)}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
   <meta property="og:url" content="${esc(url)}" />
   <meta property="og:site_name" content="${esc(SITE_NAME)}" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${esc(title)}" />
   <meta name="twitter:description" content="${esc(description)}" />
-  <meta name="twitter:image" content="${esc(image)}" />
+  <meta name="twitter:image" content="${esc(img)}" />
 ${ldScripts}
 </head>
 <body>${bodyHtml}</body>

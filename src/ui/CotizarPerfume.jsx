@@ -42,7 +42,7 @@ export default function CotizarPerfume({ sugerencia = "" }) {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={alPresionar}
-          placeholder="Ej. Amber Zero (Adar), Nishane Hacivat…"
+          placeholder="Ej. Creed Aventus, Nishane Hacivat…"
           className="flex-1 border border-gray-300 rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-[#A47E3B] focus:outline-none"
         />
         <button

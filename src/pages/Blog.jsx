@@ -81,10 +81,10 @@ export default function Blog() {
                     src={post.imagen}
                     alt={post.titulo}
                     loading="lazy"
-                    className="w-full h-48 object-cover"
+                    className="w-full aspect-square object-cover"
                   />
                 ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200" />
+                  <div className="w-full aspect-square bg-gradient-to-br from-gray-100 to-gray-200" />
                 )}
                 <div className="p-5">
                   <p className="text-xs text-gray-400 mb-2">

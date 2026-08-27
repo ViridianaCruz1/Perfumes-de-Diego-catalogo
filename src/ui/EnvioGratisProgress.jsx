@@ -34,7 +34,7 @@ function EnvioGratisProgress() {
         onClick={() => setShowTerms(!showTerms)}
         className="text-[10px] text-gray-500 hover:text-[#A47E3B] underline mt-1 block mx-auto"
       >
-        {showTerms ? "Ocultar términos" : "Ver términos y condiciones"}
+        {showTerms ? "Ocultar términos" : "Ver términos y condiciones del envío gratis"}
       </button>
 
       {showTerms && (
