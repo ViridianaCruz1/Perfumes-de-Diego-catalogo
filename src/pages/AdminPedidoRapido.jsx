@@ -29,6 +29,14 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
   const minTotal =
     esDecant && minMl != null ? calcularPrecioDecant(parfum, minMl) : null;
 
+  // Subtotal en vivo según lo seleccionado, sin agregar todavía a la orden.
+  const subtotalActual = esDecant
+    ? ml
+      ? calcularPrecioDecant(parfum, Number(ml))
+      : 0
+    : Number(parfum.precio) *
+      Math.min(Math.max(1, Number(cantidad) || 1), stockBotellas || 1);
+
   const agregar = () => {
     if (esDecant) {
       if (!ml) return;
@@ -112,6 +120,9 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
               className="w-16 border border-gray-300 rounded-md px-2 py-1 text-sm"
             />
           )}
+          <span className="text-sm font-semibold text-gray-800 whitespace-nowrap min-w-[64px]">
+            = ${formatPrecio(subtotalActual)}
+          </span>
           <button
             onClick={agregar}
             disabled={esBotella && stockBotellas < 1}
