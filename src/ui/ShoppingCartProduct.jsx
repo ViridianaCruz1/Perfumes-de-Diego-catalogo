@@ -42,7 +42,7 @@ function ShoppingCartProduct({ soloLectura = false }) {
     if (discountTarget === "BOTELLA") return item.tipoVenta === "botella";
     if (discountTarget === "BOTELLA_SELLADA")
       return item.tipoVenta === "botella" && item.estado_botella?.startsWith("Sellado");
-    return false;
+    return item.tipoVenta === "decant" && item.casa === discountTarget;
   };
 
   const getDiscountedPrice = (item) => {

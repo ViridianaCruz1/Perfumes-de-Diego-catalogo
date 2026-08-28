@@ -334,6 +334,7 @@ export function CartProvider({ children }) {
       else if (discountTarget === "BOTELLA") applies = item.tipoVenta === "botella";
       else if (discountTarget === "BOTELLA_SELLADA")
         applies = item.tipoVenta === "botella" && item.estado_botella?.startsWith("Sellado");
+      else applies = item.tipoVenta === "decant" && item.casa === discountTarget;
 
       if (!applies) return;
 

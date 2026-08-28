@@ -115,6 +115,24 @@ export function getMililitrosMinimos(parfum) {
 }
 
 /**
+ * ml mínimo respetando el mínimo de compra en $ por decant (min_decant_siempre).
+ * Devuelve la cantidad de ml más baja cuyo precio alcanza el mínimo. Si el
+ * mínimo es 0, o es Ensar Oud (excluido del mínimo), regresa el piso normal.
+ * Acepta tanto un perfume (con precio) como un item de carrito (precioUnitario).
+ * @param {object} item
+ * @param {number} minSiempre - mínimo de compra en $ por decant
+ * @returns {number} ml mínimo permitido
+ */
+export function getMililitrosMinimosMonto(item, minSiempre = 0) {
+  const piso = isEnsarOud(item) ? 0.5 : 1;
+  if (!minSiempre || minSiempre <= 0 || isEnsarOud(item)) return piso;
+  const precio = Number(item?.precioUnitario ?? item?.precio) || 0;
+  if (precio <= 0) return piso;
+  const alcanza = OPCIONES_DEFAULT.find((ml) => precio * ml >= minSiempre);
+  return alcanza ?? OPCIONES_DEFAULT[OPCIONES_DEFAULT.length - 1];
+}
+
+/**
  * Para el placeholder/label del select, según la casa.
  */
 export function getPlaceholderMililitros(parfum) {
