@@ -7,7 +7,6 @@ import {
   calcularPrecioDecantCarrito,
   getIncrementoMililitros,
   getMililitrosMinimosMonto,
-  getMililitrosMaximos,
 } from "../functions/pricingDecant";
 import { formatPrecio } from "../functions/formatPrecio";
 
@@ -69,11 +68,7 @@ function ShoppingCartProduct({ soloLectura = false }) {
     }
     if (item.tipoVenta === "decant") {
       const incremento = getIncrementoMililitros(item);
-      const maximo = getMililitrosMaximos(item);
-      const nuevosMl = item.mililitros + incremento;
-      if (nuevosMl <= maximo) {
-        updateCartItem(item.id, "decant", nuevosMl);
-      }
+      updateCartItem(item.id, "decant", item.mililitros + incremento);
     }
   };
 
@@ -116,8 +111,7 @@ function ShoppingCartProduct({ soloLectura = false }) {
         const canIncrease =
           item.tipoVenta === "botella"
             ? item.cantidad < item.stockDisponible
-            : item.mililitros + getIncrementoMililitros(item) <=
-              getMililitrosMaximos(item);
+            : true;
 
         const handleRemove = () => {
           removeFromCart(item.id, item.tipoVenta);

@@ -5,7 +5,6 @@ import { track } from "@vercel/analytics";
 import { getCupon } from "../functions/cuponBienvenida";
 import {
   calcularPrecioDecantCarrito,
-  getMililitrosMaximos,
 } from "../functions/pricingDecant";
 
 const CartContext = createContext();
@@ -192,10 +191,7 @@ export function CartProvider({ children }) {
                 cantidad: item.cantidad + 1,
               };
             } else {
-              const nuevosMl = Math.min(
-                getMililitrosMaximos(item),
-                item.mililitros + product.mililitros,
-              );
+              const nuevosMl = item.mililitros + product.mililitros;
               return {
                 ...item,
                 mililitros: nuevosMl,
