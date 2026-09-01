@@ -1,11 +1,13 @@
 import { useCart } from "../context/CartContext";
+import { useParfums } from "../context/ParfumsContext";
 import { useState } from "react";
 import { Package, Trash2 } from "lucide-react";
 import { imagenThumb } from "../functions/imagenThumb";
 import {
   calcularPrecioDecantCarrito,
   getIncrementoMililitros,
-  getMililitrosMinimos,
+  getMililitrosMinimosMonto,
+  getMililitrosMaximos,
 } from "../functions/pricingDecant";
 import { formatPrecio } from "../functions/formatPrecio";
 
@@ -19,6 +21,8 @@ function ShoppingCartProduct({ soloLectura = false }) {
     discountTarget,
     isDiscountApplied,
   } = useCart();
+
+  const { minDecantSiempre = 0 } = useParfums() || {};
 
   const [confirmingDelete, setConfirmingDelete] = useState(null);
 
@@ -65,7 +69,11 @@ function ShoppingCartProduct({ soloLectura = false }) {
     }
     if (item.tipoVenta === "decant") {
       const incremento = getIncrementoMililitros(item);
-      updateCartItem(item.id, "decant", item.mililitros + incremento);
+      const maximo = getMililitrosMaximos(item);
+      const nuevosMl = item.mililitros + incremento;
+      if (nuevosMl <= maximo) {
+        updateCartItem(item.id, "decant", nuevosMl);
+      }
     }
   };
 
@@ -75,7 +83,7 @@ function ShoppingCartProduct({ soloLectura = false }) {
     }
     if (item.tipoVenta === "decant") {
       const incremento = getIncrementoMililitros(item);
-      const minimo = getMililitrosMinimos(item);
+      const minimo = getMililitrosMinimosMonto(item, minDecantSiempre);
       const nuevosMl = item.mililitros - incremento;
       if (nuevosMl >= minimo) {
         updateCartItem(item.id, "decant", nuevosMl);
@@ -98,7 +106,9 @@ function ShoppingCartProduct({ soloLectura = false }) {
         const incremento =
           item.tipoVenta === "decant" ? getIncrementoMililitros(item) : 1;
         const minimo =
-          item.tipoVenta === "decant" ? getMililitrosMinimos(item) : 1;
+          item.tipoVenta === "decant"
+            ? getMililitrosMinimosMonto(item, minDecantSiempre)
+            : 1;
         const canDecrease =
           item.tipoVenta === "botella"
             ? item.cantidad > 1
@@ -106,7 +116,8 @@ function ShoppingCartProduct({ soloLectura = false }) {
         const canIncrease =
           item.tipoVenta === "botella"
             ? item.cantidad < item.stockDisponible
-            : true;
+            : item.mililitros + getIncrementoMililitros(item) <=
+              getMililitrosMaximos(item);
 
         const handleRemove = () => {
           removeFromCart(item.id, item.tipoVenta);
