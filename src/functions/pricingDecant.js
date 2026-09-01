@@ -115,6 +115,17 @@ export function getMililitrosMinimos(parfum) {
 }
 
 /**
+ * ml máximo permitido para un decant (el mayor de las opciones estándar).
+ * Sirve para topar el "+" del carrito y que no supere el máximo de la tienda.
+ * @param {object} item
+ * @returns {number}
+ */
+export function getMililitrosMaximos(item) {
+  const lista = isEnsarOud(item) ? OPCIONES_ENSAR_OUD : OPCIONES_DEFAULT;
+  return lista[lista.length - 1];
+}
+
+/**
  * ml mínimo respetando el mínimo de compra en $ por decant (min_decant_siempre).
  * Devuelve la cantidad de ml más baja cuyo precio alcanza el mínimo. Si el
  * mínimo es 0, o es Ensar Oud (excluido del mínimo), regresa el piso normal.

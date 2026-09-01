@@ -30,6 +30,7 @@ const RUTAS_FIJAS = [
   { path: "/casas", changefreq: "weekly", priority: "0.8" },
   { path: "/sobre-mi", changefreq: "monthly", priority: "0.6" },
   { path: "/tiktok", changefreq: "weekly", priority: "0.7" },
+  { path: "/pedido-especial", changefreq: "monthly", priority: "0.7" },
   { path: "/testimonios", changefreq: "weekly", priority: "0.7" },
   { path: "/faqs", changefreq: "monthly", priority: "0.5" },
   { path: "/terminos", changefreq: "yearly", priority: "0.3" },
