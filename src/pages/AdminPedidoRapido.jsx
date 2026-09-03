@@ -10,6 +10,13 @@ import {
 import { formatPrecio } from "../functions/formatPrecio";
 import { imagenThumb } from "../functions/imagenThumb";
 
+// Tarifa por ml redondeada hacia arriba a la próxima decena (solo decants).
+const redondearArriba10 = (n) => Math.ceil((Number(n) || 0) / 10) * 10;
+const precioMlR = (parfum) => redondearArriba10(Number(parfum.precio) || 0);
+// Precio de un decant calculado a partir de la tarifa redondeada.
+const precioDecantR = (parfum, ml) =>
+  calcularPrecioDecant({ ...parfum, precio: precioMlR(parfum) }, ml);
+
 // Una fila del catálogo con su propio control para agregar.
 function FilaPerfume({ parfum, minSiempre, onAgregar }) {
   const esDecant = parfum.stock === false;
@@ -27,12 +34,12 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
 
   const minMl = opciones[0]?.value ?? null;
   const minTotal =
-    esDecant && minMl != null ? calcularPrecioDecant(parfum, minMl) : null;
+    esDecant && minMl != null ? precioDecantR(parfum, minMl) : null;
 
   // Subtotal en vivo según lo seleccionado, sin agregar todavía a la orden.
   const subtotalActual = esDecant
     ? ml
-      ? calcularPrecioDecant(parfum, Number(ml))
+      ? precioDecantR(parfum, Number(ml))
       : 0
     : Number(parfum.precio) *
       Math.min(Math.max(1, Number(cantidad) || 1), stockBotellas || 1);
@@ -48,7 +55,7 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
         tipo: "decant",
         ml: Number(ml),
         minMl: minMl || 1,
-        subtotal: calcularPrecioDecant(parfum, Number(ml)),
+        subtotal: precioDecantR(parfum, Number(ml)),
       });
     } else if (esBotella) {
       if (stockBotellas < 1) return;
@@ -83,7 +90,7 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
         {parfum.nombre}
       </td>
       <td className="py-2 pr-2 text-sm text-gray-700 whitespace-nowrap">
-        ${formatPrecio(parfum.precio)}
+        ${formatPrecio(esDecant ? precioMlR(parfum) : parfum.precio)}
         {esDecant ? "/ml" : " /pza"}
       </td>
       <td className="py-2 pr-2 text-sm text-gray-500 whitespace-nowrap">
@@ -197,7 +204,7 @@ export default function AdminPedidoRapido() {
             ...actual,
             ml: nuevoMl,
             subtotal: parfum
-              ? calcularPrecioDecant(parfum, nuevoMl)
+              ? precioDecantR(parfum, nuevoMl)
               : actual.subtotal,
           };
         } else {
@@ -239,7 +246,7 @@ export default function AdminPedidoRapido() {
         const max = 30;
         let nuevo = Math.round((Number(l.ml) + dir * paso) * 10) / 10;
         nuevo = Math.max(min, Math.min(max, nuevo));
-        return { ...l, ml: nuevo, subtotal: calcularPrecioDecant(parfum, nuevo) };
+        return { ...l, ml: nuevo, subtotal: precioDecantR(parfum, nuevo) };
       }),
     );
   };
