@@ -143,14 +143,80 @@ function FilaPerfume({ parfum, minSiempre, onAgregar }) {
   );
 }
 
+const LS_PEDIDOS = "pedidos-rapidos-bazar";
+const nuevoId = () =>
+  "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function cargarPedidosGuardados() {
+  try {
+    const raw = localStorage.getItem(LS_PEDIDOS);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && Array.isArray(d.pedidos) && d.pedidos.length > 0) return d;
+    }
+  } catch {
+    // ignora datos corruptos
+  }
+  return null;
+}
+
 export default function AdminPedidoRapido() {
   const [parfums, setParfums] = useState([]);
   const [config, setConfig] = useState({ min_decant_siempre: 0 });
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState("");
-  const [lineas, setLineas] = useState([]);
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState("");
+  const [confirmarCerrar, setConfirmarCerrar] = useState(null);
+
+  // Varios pedidos abiertos a la vez (para atender a varias personas).
+  const [pedidos, setPedidos] = useState(() => {
+    const d = cargarPedidosGuardados();
+    return d?.pedidos ?? [{ id: "p1", numero: 1, lineas: [] }];
+  });
+  const [activoId, setActivoId] = useState(() => {
+    const d = cargarPedidosGuardados();
+    if (d?.pedidos?.length) {
+      return d.pedidos.some((p) => p.id === d.activoId)
+        ? d.activoId
+        : d.pedidos[0].id;
+    }
+    return "p1";
+  });
+  const [nextNum, setNextNum] = useState(() => {
+    const d = cargarPedidosGuardados();
+    return d?.nextNum ?? 2;
+  });
+
+  // Guarda los pedidos abiertos en el navegador (sobreviven recargas).
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        LS_PEDIDOS,
+        JSON.stringify({ pedidos, activoId, nextNum }),
+      );
+    } catch {
+      // sin persistencia si falla
+    }
+  }, [pedidos, activoId, nextNum]);
+
+  const pedidoActivo = pedidos.find((p) => p.id === activoId) || pedidos[0];
+  const lineas = pedidoActivo?.lineas ?? [];
+
+  // Actualiza solo las líneas del pedido activo.
+  const setLineas = (updater) => {
+    setPedidos((prev) =>
+      prev.map((p) =>
+        p.id === (pedidoActivo?.id ?? activoId)
+          ? {
+              ...p,
+              lineas:
+                typeof updater === "function" ? updater(p.lineas) : updater,
+            }
+          : p,
+      ),
+    );
+  };
 
   useEffect(() => {
     (async () => {
@@ -274,17 +340,39 @@ export default function AdminPedidoRapido() {
       : `${l.cantidad} pza${l.cantidad > 1 ? "s" : ""}`;
 
   const nuevoPedido = () => {
-    setLineas([]);
+    const id = nuevoId();
+    setPedidos((prev) => [...prev, { id, numero: nextNum, lineas: [] }]);
+    setNextNum((n) => n + 1);
+    setActivoId(id);
     setMsg("");
   };
 
-  const guardarPedido = async () => {
-    if (lineas.length === 0) return;
+  const cerrarPedido = (id) => {
+    const restantes = pedidos.filter((p) => p.id !== id);
+    if (restantes.length === 0) {
+      const fresh = { id: nuevoId(), numero: 1, lineas: [] };
+      setPedidos([fresh]);
+      setActivoId(fresh.id);
+      setNextNum(2);
+    } else {
+      setPedidos(restantes);
+      if (id === activoId) setActivoId(restantes[0].id);
+    }
+    setMsg("");
+  };
+
+  const guardarPedidoPorId = async (id) => {
+    const ped = pedidos.find((p) => p.id === id);
+    if (!ped || ped.lineas.length === 0) return;
     setGuardando(true);
     setMsg("");
+    const tot = ped.lineas.reduce((s, l) => s + (l.subtotal || 0), 0);
     const { error } = await supabase.from("pedidos_bazar").insert({
-      items: lineas.map(({ key, ...l }) => ({ ...l, detalle: detalleLinea(l) })),
-      total,
+      items: ped.lineas.map(({ key, ...l }) => ({
+        ...l,
+        detalle: detalleLinea(l),
+      })),
+      total: tot,
       bazar_activo: false,
       recargo: 0,
     });
@@ -293,9 +381,11 @@ export default function AdminPedidoRapido() {
       setMsg("No se pudo guardar el pedido. Revisa permisos (RLS) o conexión.");
     } else {
       setMsg("Pedido guardado ✓");
-      setLineas([]);
+      cerrarPedido(id);
     }
   };
+
+  const guardarPedido = () => guardarPedidoPorId(activoId);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -361,15 +451,62 @@ export default function AdminPedidoRapido() {
           {/* Pedido actual */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow sticky top-4 flex flex-col max-h-[calc(100vh-2rem)]">
-              {/* Encabezado */}
-              <div className="flex items-center justify-between p-4 pb-2 shrink-0">
-                <h2 className="font-bold text-gray-900">Pedido actual</h2>
+              {/* Pestañas de pedidos abiertos */}
+              <div className="flex items-center gap-1.5 p-3 pb-2 shrink-0 flex-wrap border-b border-gray-100">
+                {pedidos.map((p) => {
+                  const tot = p.lineas.reduce(
+                    (s, l) => s + (l.subtotal || 0),
+                    0,
+                  );
+                  const activo = p.id === activoId;
+                  return (
+                    <div
+                      key={p.id}
+                      className={`flex items-center rounded-full text-sm border ${
+                        activo
+                          ? "bg-[#A47E3B] text-white border-[#A47E3B]"
+                          : "bg-white text-gray-700 border-gray-300"
+                      }`}
+                    >
+                      <button
+                        onClick={() => setActivoId(p.id)}
+                        className="pl-3 pr-1.5 py-1 font-medium"
+                      >
+                        Pedido {p.numero}
+                        {tot > 0 && (
+                          <span
+                            className={activo ? "opacity-90" : "text-gray-400"}
+                          >
+                            {" "}
+                            · ${formatPrecio(tot)}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setConfirmarCerrar(p.id)}
+                        title="Cerrar pedido"
+                        className={`pr-2 pl-0.5 py-1 ${
+                          activo ? "hover:text-red-200" : "hover:text-red-600"
+                        }`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
                 <button
                   onClick={nuevoPedido}
-                  className="text-xs text-gray-500 hover:text-red-600"
+                  className="rounded-full text-sm px-3 py-1 border border-dashed border-gray-400 text-gray-600 hover:bg-gray-50 font-medium"
                 >
-                  Nuevo pedido
+                  + Nuevo
                 </button>
+              </div>
+
+              {/* Encabezado del pedido activo */}
+              <div className="flex items-center justify-between p-4 pb-2 shrink-0">
+                <h2 className="font-bold text-gray-900">
+                  Pedido {pedidoActivo?.numero}
+                </h2>
               </div>
 
               {/* Lista (lo único que scrollea) */}
@@ -457,6 +594,65 @@ export default function AdminPedidoRapido() {
           </div>
         </div>
       </main>
+
+      {/* Diálogo al cerrar un pedido: descartar o finalizar y guardar */}
+      {confirmarCerrar &&
+        (() => {
+          const ped = pedidos.find((p) => p.id === confirmarCerrar);
+          if (!ped) return null;
+          const puedeGuardar = ped.lineas.length > 0;
+          const id = ped.id;
+          return (
+            <div
+              className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+              onClick={() => setConfirmarCerrar(null)}
+            >
+              <div
+                className="bg-white rounded-lg shadow-xl max-w-sm w-full p-5"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="font-bold text-gray-900 mb-1">
+                  Pedido {ped.numero}
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  ¿Qué quieres hacer con este pedido?
+                </p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={async () => {
+                      setConfirmarCerrar(null);
+                      await guardarPedidoPorId(id);
+                    }}
+                    disabled={!puedeGuardar || guardando}
+                    className="w-full bg-[#A47E3B] text-white py-2.5 rounded-md font-semibold hover:bg-[#8b6d32] disabled:bg-gray-300"
+                  >
+                    {guardando ? "Guardando…" : "Finalizar y guardar"}
+                  </button>
+                  {!puedeGuardar && (
+                    <p className="text-xs text-gray-400 text-center -mt-1">
+                      Pedido vacío: no hay nada que guardar.
+                    </p>
+                  )}
+                  <button
+                    onClick={() => {
+                      setConfirmarCerrar(null);
+                      cerrarPedido(id);
+                    }}
+                    className="w-full border border-red-200 text-red-600 py-2.5 rounded-md font-semibold hover:bg-red-50"
+                  >
+                    Descartar
+                  </button>
+                  <button
+                    onClick={() => setConfirmarCerrar(null)}
+                    className="w-full text-gray-500 py-2 rounded-md hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 }
